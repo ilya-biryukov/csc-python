@@ -106,17 +106,6 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         glEnd()
 
 
-    def __set_projection(self, w, h):
-        # Set up projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        left = -2. / 500 * w
-        right = -left
-        bottom = -2. / 500 * h
-        top = -bottom
-        gluOrtho2D(left, right, bottom, top)
-
-
     def resizeGL(self, w, h):
         # Set up the viewport
         glViewport(0, 0, w, h)
@@ -133,8 +122,44 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
 
 
+# Handles user interaction
+class PolygonViewer(PolygonViewerImpl):
+    def __init__(self, parent):
+        PolygonViewerImpl.__init__(self, parent)
+
+        self.__last_coord = QtCore.QPoint(0, 0)
+        self.setMouseTracking(False)
+
+
+    def __update_center(self, coord_diff):
+        # We'll use OpenGL transformations matrices to find new coordinates of the center
+        self.makeCurrent()
+        (cx, cy, _) = gluProject(self.center.x(), self.center.y(), 0.0)
+        (nx, ny, _) = gluUnProject(cx + coord_diff.x(), cy + coord_diff.y(), 0.0)
+        self.center = QtCore.QPointF(nx, ny)
+
+
+    def wheelEvent(self, event):
+        # Handle scaling
+        scale_diff = event.delta() / 3600.
+        self.scale += scale_diff
+
+
+    def mousePressEvent(self, mouse_event):
+        self.__last_coord = mouse_event.pos()
+
+
+    def mouseMoveEvent(self, mouse_event):
+        pos_diff = mouse_event.pos() - self.__last_coord
+        self.__last_coord = mouse_event.pos()
+        pos_diff.setX(-pos_diff.x())
+        self.__update_center(pos_diff)
+
+
+
 if __name__ == "__main__":
     app = QtGui.QApplication(["Widget demo"])
     win = PolygonViewer(None)
     win.show()
+
     app.exec_()
