@@ -20,7 +20,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.scaleChanged.connect(self.updateGL)
         self.centerChanged.connect(self.updateGL)
         self.__scale = 1.0
-        self.__center = QtCore.QPointF(1.0, 1.0)
+        self.__center = QtCore.QPointF(0.0, 0.0)
 
 
     def __set_projection(self, w, h):
