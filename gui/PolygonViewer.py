@@ -1,14 +1,74 @@
 __author__ = 'ilya'
 
-from PyQt4 import QtOpenGL, QtGui
+from PyQt4 import QtOpenGL, QtGui, QtCore
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-class PolygonViewer(QtOpenGL.QGLWidget):
+
+# Low-level class, handles drawing, scaling, etc
+class PolygonViewerImpl(QtOpenGL.QGLWidget):
+
+    scaleChanged = QtCore.pyqtSignal(float)
+    centerChanged = QtCore.pyqtSignal(QtCore.QPointF)
+    __MAX_SCALE = 5.0
+    __MIN_SCALE = 0.01
+
 
     def __init__(self, parent):
         QtOpenGL.QGLWidget.__init__(self, parent)
+        self.scaleChanged.connect(self.updateGL)
+        self.centerChanged.connect(self.updateGL)
+        self.__scale = 1.0
+        self.__center = QtCore.QPointF(1.0, 1.0)
+
+
+    def __set_projection(self, w, h):
+        # Set up projection
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        x = float(w) / 500
+        y = float(h) / 500
+        gluOrtho2D(-x, x, -y, y)
+        # Scale
+        glScalef(self.scale, self.scale, 1.0)
+        # Translate
+        glTranslatef(-self.center.x(), -self.center.y(), 0.0)
+
+
+    def getScale(self):
+        return self.__scale
+
+
+    @QtCore.pyqtSlot(float)
+    def setScale(self, new_scale):
+        if new_scale < self.__MIN_SCALE:
+            new_scale = self.__MIN_SCALE
+        elif new_scale > self.__MAX_SCALE:
+            new_scale = self.__MAX_SCALE
+
+        self.__scale = new_scale
+        self.makeCurrent()
+        self.__set_projection(self.width(), self.height())
+        self.scaleChanged.emit(self.__scale)
+
+
+    scale = property(getScale, setScale)
+
+
+    def getCenter(self):
+        return self.__center
+
+
+    @QtCore.pyqtSlot(QtCore.QPointF)
+    def setCenter(self, pt):
+        self.__center = pt
+        self.centerChanged.emit(pt)
+        self.makeCurrent()
+        self.__set_projection(self.width(), self.height())
+
+
+    center = property(getCenter, setCenter)
 
 
     def paintGL(self):
