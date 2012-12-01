@@ -146,8 +146,6 @@ class Builder(object):
 
         #check if point is on a boundary
         for i in xrange(n):
-            p1 = None
-            p2 = None
             if i == 0:
                 p1 = polygon[-1]
                 p2 = polygon[0]
