@@ -139,14 +139,28 @@ class PolygonViewer(PolygonViewerImpl):
         self.center = QtCore.QPointF(nx, ny)
 
 
+    def __set_cursor_shape(self, shape):
+        cursor = self.cursor()
+        cursor.setShape(shape)
+        self.setCursor(cursor)
+
+
     def wheelEvent(self, event):
         # Handle scaling
         scale_diff = event.delta() / 3600.
         self.scale += scale_diff
 
 
+
     def mousePressEvent(self, mouse_event):
+        # Remember last coordinates
         self.__last_coord = mouse_event.pos()
+
+        self.__set_cursor_shape(QtCore.Qt.ClosedHandCursor)
+
+
+    def mouseReleaseEvent(self, mouse_event):
+        self.__set_cursor_shape(QtCore.Qt.ArrowCursor)
 
 
     def mouseMoveEvent(self, mouse_event):
