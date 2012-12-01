@@ -15,6 +15,9 @@ class SortedPoint(Point):
         self.__is_first = is_first
         self.__is_last = is_last
 
+    def get_polygon_id(self):
+        return self.__polygon_id
+
     def get_is_first(self):
         return self.__is_first
 
@@ -29,3 +32,4 @@ class SortedPoint(Point):
 
     is_first = property(get_is_first, set_is_first)
     is_last = property(get_is_last, set_is_last)
+    pid = property(get_polygon_id)

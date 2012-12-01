@@ -20,3 +20,19 @@ class Graph(object):
         self.__vertices[from_vertex_id].append(to_vertex_id)
         self.__vertices[to_vertex_id].append(from_vertex_id)
 
+    def is_adjacent_vertices(self, vertex_id1, vertex_id2):
+        for v in self.__vertices[vertex_id1]:
+            if v == vertex_id2:
+                return True
+        return False
+
+    def merge_by_map(self, id_map):
+        new_vertices = [list() for n in len(id_map.keys())]
+        new_names    = [list() for n in len(id_map.keys())]
+        for key in id_map.keys():
+            for ver in id_map[key]:
+                for aver in self.__vertices[ver]:
+                    if not aver in new_vertices[key]:
+                        new_vertices[key].append(aver)
+        self.__vertices = new_vertices
+        self.__vertices_names = new_names

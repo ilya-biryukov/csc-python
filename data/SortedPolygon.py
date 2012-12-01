@@ -10,6 +10,11 @@ class SortedPolygon(Polygon):
         self.__get_extreme_point()
         self.__sorted_points = None
 
+    def get_polygon_id(self):
+        return self.__id
+
+    id = property(get_polygon_id)
+
     def __get_extreme_point(self):
         self.__max_y = self.points[0]
         self.__min_y = self.points[0]
