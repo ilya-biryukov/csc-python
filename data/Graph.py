@@ -11,10 +11,11 @@ class Graph(object):
     def get_vertices_count(self):
         return len(self.__vertices)
 
+    def get_vertex_name(self, vertex_ind):
+        return self.__vertices_names[vertex_ind]
 
     def adjacent_vertices(self, vertex_index):
         return self.__vertices[vertex_index]
-
 
     def add_edge(self, from_vertex_id, to_vertex_id):
         self.__vertices[from_vertex_id].append(to_vertex_id)
@@ -27,8 +28,8 @@ class Graph(object):
         return False
 
     def merge_by_map(self, id_map):
-        new_vertices = [list() for n in len(id_map.keys())]
-        new_names    = [list() for n in len(id_map.keys())]
+        new_vertices = [list() for n in xrange(len(id_map.keys()))]
+        new_names    = [list() for n in xrange(len(id_map.keys()))]
         for key in id_map.keys():
             for ver in id_map[key]:
                 for aver in self.__vertices[ver]:
