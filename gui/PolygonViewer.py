@@ -5,6 +5,8 @@ from PyQt4 import QtOpenGL, QtGui, QtCore
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+from gui.gl_util import triangulate
+
 from data.Polygon import Polygon
 
 
@@ -13,7 +15,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
     scaleChanged = QtCore.pyqtSignal(float)
     centerChanged = QtCore.pyqtSignal(QtCore.QPointF)
-    __MAX_SCALE = 5.0
+    __MAX_SCALE = 10.0
     __MIN_SCALE = 0.01
 
 
@@ -23,7 +25,11 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.centerChanged.connect(self.updateGL)
         self.__scale = 1.0
         self.__center = QtCore.QPointF(0.0, 0.0)
-        self.__polygons = []
+        self.setPolygons([])
+
+
+    def __prepare_polygons(self, polygons):
+        return triangulate(polygons)
 
 
     def __set_projection(self, w, h):
@@ -74,33 +80,25 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     center = property(getCenter, setCenter)
 
 
-    def getPolygons(self):
-        return self.__polygons
-
-
     @QtCore.pyqtSlot(list)
     def setPolygons(self, polygons):
-        self.__polygons = polygons
-
-
-    polygons = property(getPolygons, setPolygons)
+        self.__polygon_painter = self.__prepare_polygons(polygons)
+        self.makeCurrent()
+        self.__polygon_painter.init_vbo()
 
 
     def paintGL(self):
+        glClearColor(1.0, 1.0, 1.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
         colors = [(0.5, 1.0, 0.0), (1.0, 0.5, 0.0), (0.0, 0.5, 1.0), (0.0, 1.0, 0.5)]
-        for n, poly in enumerate(self.polygons):
-            cl = colors[n % 4]
-            glColor(cl[0], cl[1], cl[2])
-            # Draw polygon
-            glBegin(GL_POLYGON)
-            for pt in poly.points:
-                glVertex(pt.x, pt.y, 0.0)
-            glEnd()
+        cl = colors[0]
+        # TODO: Colors
+#        glColor(cl[0], cl[1], cl[2])
+        self.__polygon_painter.paint_vbo()
 
 
     def resizeGL(self, w, h):
@@ -189,8 +187,10 @@ if __name__ == "__main__":
         win = PolygonViewer(None)
         win.show()
 
-        win.polygons = polygons
+        win.setPolygons(polygons)
 
+#        win.setPolygons([Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)]),\
+#                         Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 10.0), (1.0, 20.0)])])
         app.exec_()
 
     run_shapefile_test()
