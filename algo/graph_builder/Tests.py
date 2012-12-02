@@ -63,7 +63,7 @@ class BuilderTests(unittest.TestCase):
         n = len(self.additional_polygon_1.points)
         n += len(self.additional_polygon_2.points)
         n += len(self.test_polygon.points)
-        sorted_points = Builder.Builder.sorted_points(polygons)
+        sorted_points = list(Builder.Builder.sorted_points(polygons))
         self.assertEquals(len(sorted_points), n)
         for i in xrange(1, n):
             self.assertTrue(sorted_points[i].x >= sorted_points[i - 1], 'Bad point {0} with index {1: d}'.format(str(sorted_points[i]), i))
@@ -109,7 +109,7 @@ class BuilderTests(unittest.TestCase):
 
 
     def test_build_part_countries_graph(self):
-        records = self.shape_records[0:50]
+        records = self.shape_records[0:2]
         graph = Builder.Builder.build_country_graph(records)
         self.assertEquals(graph.get_vertices_count(), len(records), 'Length not equals')
         for i in xrange(len(records)):
