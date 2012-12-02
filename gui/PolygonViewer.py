@@ -167,10 +167,32 @@ class PolygonViewer(PolygonViewerImpl):
         self.__update_center(pos_diff)
 
 
-
 if __name__ == "__main__":
-    app = QtGui.QApplication(["Widget demo"])
-    win = PolygonViewer(None)
-    win.show()
+    def run_simple_test():
+        app = QtGui.QApplication(["Simple polygon-drawing demo"])
+        win = PolygonViewer(None)
+        win.show()
 
-    app.exec_()
+        poly_1 = Polygon([(0.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+        poly_2 = Polygon([(0.0, -1.0), (-1.0, 0.0), (0.0, 0.0)])
+        win.polygons = [poly_1, poly_2]
+
+        app.exec_()
+
+    def run_shapefile_test():
+        from algo.graph_builder import Builder, shapefile
+        shape_records = shapefile.Reader('../algo/graph_builder/WORLD_MAP/WORLD_MAP').shapeRecords()
+        polygons, _ = Builder.Builder.build_sorted_polygon_list(shape_records)
+
+        app = QtGui.QApplication(["Shapefiles test"])
+
+        win = PolygonViewer(None)
+        win.show()
+
+        win.polygons = polygons
+
+        app.exec_()
+
+    run_shapefile_test()
+
+
