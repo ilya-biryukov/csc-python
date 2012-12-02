@@ -232,13 +232,13 @@ class Builder(object):
         leftx = polygon.get_sorted_points()[0].x
         upy = polygon.max_y
         downy = polygon.min_y
-        point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
+        point1 = Point.Point(random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.))
         test1 = Builder.__check_in_polygon(point1, point, polygon)
-        point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.)])
+        point1 = Point.Point(random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.))
         test2 = Builder.__check_in_polygon(point1, point, polygon)
         if test1 != test2:
 
-            point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.)])
+            point1 = Point.Point(random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.))
             return Builder.__check_in_polygon(point1, point, polygon)
         else:
             return test1
