@@ -47,10 +47,5 @@ class SortedPolygon(Polygon):
             self.__sorted_points[i].is_first = True
             i += 1
 
-        rightx = self.__sorted_points[-1].x
-        i = -1
-        while rightx == self.__sorted_points[i].x:
-            self.__sorted_points[i].is_last = True
-            i -= 1
-
+        self.__sorted_points[-1].is_last = True
         return self.__sorted_points

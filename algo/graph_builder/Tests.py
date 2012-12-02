@@ -68,4 +68,12 @@ class BuilderTests(unittest.TestCase):
         for i in xrange(1, n):
             self.assertTrue(sorted_points[i].x >= sorted_points[i - 1], 'Bad point {0} with index {1: d}'.format(str(sorted_points[i]), i))
 
-
+    def test_build_polygons_graph(self):
+        polygons = [self.test_polygon, self.additional_polygon_1, self.additional_polygon_2]
+        sorted_points = Builder.Builder.sorted_points(polygons)
+        graph = Builder.Builder.build_polygons_graph(polygons, sorted_points)
+        self.assertTrue(graph.is_adjacent_vertices(0, 1), '0 and 1 dont adj')
+        self.assertTrue(graph.is_adjacent_vertices(1, 0), '1 and 0 dont adj')
+        self.assertTrue(graph.is_adjacent_vertices(0, 2), '0 and 2 dont adj')
+        self.assertTrue(graph.is_adjacent_vertices(2, 0), '2 and 0 dont adj')
+        self.assertFalse(graph.is_adjacent_vertices(1, 2), '2 and 0 is adj')

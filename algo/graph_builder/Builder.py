@@ -114,7 +114,7 @@ class Builder(object):
             for pid in opened:
                 if graph.is_adjacent_vertices(p.pid, pid):
                     continue
-                if pid == p.id:
+                if pid == p.pid:
                     continue
                 assert polygons[pid].id == pid
                 if polygons[pid].min_y <= p.y <= polygons[pid].max_y:
@@ -123,7 +123,7 @@ class Builder(object):
                         graph.add_edge(pid, p.pid)
             if p.is_last:
                 assert p.pid in opened
-                del opened[p.pid]
+                opened.remove(p.pid)
         return graph
 
     @staticmethod
@@ -225,15 +225,16 @@ class Builder(object):
 
     @staticmethod
     def check_in(point, polygon):
+        rightx = polygon.get_sorted_points()[-1].x
         leftx = polygon.get_sorted_points()[0].x
         upy = polygon.max_y
+        downy = polygon.min_y
         point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
         test1 = Builder.__check_in_polygon(point1, point, polygon)
-        point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
+        point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.)])
         test2 = Builder.__check_in_polygon(point1, point, polygon)
         if test1 != test2:
-            rightx = polygon.get_sorted_points()[-1].x
-            downy = polygon.min_y
+
             point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.)])
             return Builder.__check_in_polygon(point1, point, polygon)
         else:
