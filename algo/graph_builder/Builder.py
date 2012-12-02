@@ -68,9 +68,10 @@ class Builder(object):
         id_map = {}
         polygons = []
         for sr in shape_records:
+            id_map[now_sr] = list()
             now_polygons, new_id = Builder.get_sorted_polygons_from_shape(sr.shape, now_id)
             for id in xrange(now_id, new_id):
-                id_map[now_sr] = id
+                id_map[now_sr].append(id)
             now_id = new_id
             for polygon in now_polygons:
                 polygons.append(polygon)
@@ -80,19 +81,20 @@ class Builder(object):
 
     @staticmethod
     def merge(points):
-        res_points = []
+        #res_points = []
         total_length = 0
         for p in points:
             total_length += len(p)
         inds = [0 for i in xrange(len(points))]
+        print total_length
         for i in xrange(total_length):
             min_ind = 0
             for ind in xrange(len(points)):
                 if inds[min_ind] >=len(points[min_ind]) or inds[ind] < len(points[ind]) and points[ind][inds[ind]].x < points[min_ind][inds[min_ind]].x:
                     min_ind = ind
-            res_points.append(points[min_ind][inds[min_ind]])
+            #res_points.append(points[min_ind][inds[min_ind]])
+            yield points[min_ind][inds[min_ind]]
             inds[min_ind] += 1
-        return res_points
 
     @staticmethod
     def sorted_points(polygons):
@@ -128,13 +130,15 @@ class Builder(object):
     @staticmethod
     def build_country_graph(shape_records):
         """Main method returns graph of countries"""
-
         polygons, id_map  = Builder.build_sorted_polygon_list(shape_records)
+        print 'Build all polygons'
         sorted_points = Builder.sorted_points(polygons)
+        #print 'Merged points' + str(len(sorted_points))
         graph = Builder.build_polygons_graph(polygons, sorted_points)
+        print 'Build graph'
         graph.merge_by_map(id_map)
-        for i in xrange(shape_records):
-            graph.add_vertex_name(i, shape_records.record[4])
+        for i in xrange(len(shape_records)):
+            graph.add_vertex_name(i, shape_records[i].record[4])
 
         return graph
 
