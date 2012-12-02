@@ -103,3 +103,7 @@ class BuilderTests(unittest.TestCase):
 #    def test_build_contry_graph_2_not_adj(self):
 #        record = [self.shape_records[0], self.shape_records[1]]
 #        Builder.Builder.build_country_graph()
+
+
+if __name__ == "__main__":
+    unittest.main()
