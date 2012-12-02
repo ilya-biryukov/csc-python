@@ -5,6 +5,7 @@ import random
 from data import Point
 from data import Polygon
 from data import SortedPolygon
+from data import SortedPoint
 from data import Country
 from data import Graph
 
@@ -88,7 +89,7 @@ class Builder(object):
         for i in xrange(total_length):
             min_ind = 0
             for ind in xrange(len(points)):
-                if inds[ind] < len(points[ind]) and points[ind][inds[ind]] < points[min_ind][inds[ind]]:
+                if inds[min_ind] >=len(points[min_ind]) or inds[ind] < len(points[ind]) and points[ind][inds[ind]].x < points[min_ind][inds[min_ind]].x:
                     min_ind = ind
             res_points.append(points[min_ind][inds[min_ind]])
             inds[min_ind] += 1
@@ -108,9 +109,8 @@ class Builder(object):
         graph = Graph.Graph(len(polygons))
         for p in sorted_points:
             if p.is_first:
-                opened.append(p.pid)
-            if p.is_last:
-                del opened[p.pid]
+                if not p.pid in opened:
+                    opened.append(p.pid)
             for pid in opened:
                 if graph.is_adjacent_vertices(p.pid, pid):
                     continue
@@ -121,6 +121,9 @@ class Builder(object):
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
                         graph.add_edge(pid, p.pid)
+            if p.is_last:
+                assert p.pid in opened
+                del opened[p.pid]
         return graph
 
     @staticmethod
@@ -155,6 +158,10 @@ class Builder(object):
 
     @staticmethod
     def __intersection2d(p1, p2, p3, p4):
+
+        if p2 == p3 or p2 == p4 or p1 == p3 or p1 == p4:
+            return 'On'
+
         A1, B1 = p1.y - p2.y, p2.x - p1.x
         C1 = -A1*p1.x - B1*p1.y
 
@@ -165,19 +172,18 @@ class Builder(object):
         uy = p3.y if p3.y > p4.y else p4.y
 
         det = Builder.__det(A1, B1, A2, B2)
-        print str(p1) + ' ' + str(p2)
-        print str(p3) + ' ' + str(p4)
         if abs(det) - Builder.EPS > 0 :
             x = - Builder.__det(C1, B1, C2, B2) / det
             y = - Builder.__det(A1, C1, A2, C2) / det
-            print x
-            print y
+
             #f1 - check is in first segment
             f1 = Builder.__between(p1.x, p2.x, x) and Builder.__between(p1.y, p2.y, y)
             #f2 - check is in second segment
             f2 = Builder.__between(p3.x, p4.x, x) and Builder.__between(p3.y, p4.y, y)
             #f3 - x and y not upper point
             f3 = abs(ux - x) < Builder.EPS and abs(uy - y) < Builder.EPS
+            if abs(p2.x - x) < Builder.EPS and abs(p2.y - y) < Builder.EPS and f1 and f2:
+                return 'On'
             return f1 and f2 and not f3
         else:
             #det == 0 => parallel lines
@@ -209,7 +215,10 @@ class Builder(object):
             if minx > maxxl or maxx < minxl or miny > maxyl or maxy < minyl:
                 lp1, lx1, ly1 = lp2, lx2, ly2
                 continue
-            if Builder.__intersection2d(point1, point2, lp1, lp2):
+            res = Builder.__intersection2d(point1, point2, lp1, lp2)
+            if res == 'On':
+                return True
+            if res:
                 isIn = not isIn
             lp1, lx1, ly1 = lp2, lx2, ly2
         return isIn
@@ -217,6 +226,16 @@ class Builder(object):
     @staticmethod
     def check_in(point, polygon):
         leftx = polygon.get_sorted_points()[0].x
-        point1 = Point.Point([random.uniform(leftx - 10., leftx - 1.), point.y])
-        return Builder.__check_in_polygon(point1, point, polygon)
+        upy = polygon.max_y
+        point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
+        test1 = Builder.__check_in_polygon(point1, point, polygon)
+        point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
+        test2 = Builder.__check_in_polygon(point1, point, polygon)
+        if test1 != test2:
+            rightx = polygon.get_sorted_points()[-1].x
+            downy = polygon.min_y
+            point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.)])
+            return Builder.__check_in_polygon(point1, point, polygon)
+        else:
+            return test1
 

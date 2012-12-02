@@ -40,6 +40,17 @@ class SortedPolygon(Polygon):
         for point in self.points:
             self.__sorted_points.append(SortedPoint(point.x, point.y, self.__id))
         self.__sorted_points = sorted(self.__sorted_points, key = lambda point: point.x)
-        self.__sorted_points[0].is_first = True
-        self.__sorted_points[-1].is_last = True
+
+        leftx = self.__sorted_points[0].x
+        i = 0
+        while leftx == self.__sorted_points[i].x:
+            self.__sorted_points[i].is_first = True
+            i += 1
+
+        rightx = self.__sorted_points[-1].x
+        i = -1
+        while rightx == self.__sorted_points[i].x:
+            self.__sorted_points[i].is_last = True
+            i -= 1
+
         return self.__sorted_points

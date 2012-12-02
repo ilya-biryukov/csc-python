@@ -14,10 +14,21 @@ class BuilderTests(unittest.TestCase):
                                                          (1., 1.),
                                                          (1., 2.),
                                                          (3., 4.),
-                                                         (7., 4.),
+                                                         (5., 4.),
                                                          (8., 6.),
                                                          (7., 1.),
                                                          (4., 3.)], 0)
+
+        self.additional_polygon_1 = SortedPolygon.SortedPolygon([(7., 4.),
+                                                                 (7., 7.),
+                                                                 (2., 7.),
+                                                                 (2., 4.),
+                                                                 (7., 4.)], 1)
+        self.additional_polygon_2 = SortedPolygon.SortedPolygon([(8., 1.),
+                                                                 (6., 1.),
+                                                                 (5., 2.),
+                                                                 (4., 0.),
+                                                                 (8., 0.)], 2)
 
     def test_check_in_in(self):
         """
@@ -28,6 +39,7 @@ class BuilderTests(unittest.TestCase):
                     SortedPoint.SortedPoint(4., 3., 3),
                     SortedPoint.SortedPoint(2., 3., 4),
                     SortedPoint.SortedPoint(7.5, 3.5, 5),
+                    SortedPoint.SortedPoint(6., 4., 6),
                     ]
         for p in pointsIn:
             self.assertTrue(Builder.Builder.check_in(p, self.test_polygon),'Incorrect point %s' % p)
@@ -44,7 +56,16 @@ class BuilderTests(unittest.TestCase):
                     SortedPoint.SortedPoint(9., 4., 6)
                     ]
         for p in pointsIn:
-            self.assertFalse(Builder.Builder.check_in(p, self.test_polygon))
+            self.assertFalse(Builder.Builder.check_in(p, self.test_polygon), 'Incorrect point %s' % p)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_sorted_points(self):
+        polygons = [self.test_polygon, self.additional_polygon_1, self.additional_polygon_2]
+        n = len(self.additional_polygon_1.points)
+        n += len(self.additional_polygon_2.points)
+        n += len(self.test_polygon.points)
+        sorted_points = Builder.Builder.sorted_points(polygons)
+        self.assertEquals(len(sorted_points), n)
+        for i in xrange(1, n):
+            self.assertTrue(sorted_points[i].x >= sorted_points[i - 1], 'Bad point {0} with index {1: d}'.format(str(sorted_points[i]), i))
+
+
