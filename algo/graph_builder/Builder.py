@@ -117,13 +117,13 @@ class Builder(object):
                     continue
                 if pid == p.pid:
                     continue
-                assert polygons[pid].id == pid
+                #assert polygons[pid].id == pid
                 if polygons[pid].min_y <= p.y <= polygons[pid].max_y:
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
                         graph.add_edge(pid, p.pid)
             if p.is_last:
-                assert p.pid in opened
+                #assert p.pid in opened
                 opened.remove(p.pid)
         return graph
 
@@ -131,7 +131,7 @@ class Builder(object):
     def build_country_graph(shape_records):
         """Main method returns graph of countries"""
         polygons, id_map  = Builder.build_sorted_polygon_list(shape_records)
-        print 'Build all polygons'
+        print 'Build all polygons ' + str(len(polygons))
         sorted_points = Builder.sorted_points(polygons)
         #print 'Merged points' + str(len(sorted_points))
         graph = Builder.build_polygons_graph(polygons, sorted_points)
@@ -185,7 +185,7 @@ class Builder(object):
             f2 = Builder.__between(p3.x, p4.x, x) and Builder.__between(p3.y, p4.y, y)
             #f3 - x and y not upper point
             f3 = abs(ux - x) < Builder.EPS and abs(uy - y) < Builder.EPS
-            if abs(p2.x - x) < Builder.EPS and abs(p2.y - y) < Builder.EPS and f1 and f2:
+            if abs(p2.x - x) < Builder.EPS and abs(p2.y - y) < Builder.EPS and f2:
                 return 'On'
             return f1 and f2 and not f3
         else:
@@ -234,8 +234,9 @@ class Builder(object):
         downy = polygon.min_y
         point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
         test1 = Builder.__check_in_polygon(point1, point, polygon)
-        point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.)])
-        test2 = Builder.__check_in_polygon(point1, point, polygon)
+        #point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.)])
+        #test2 = Builder.__check_in_polygon(point1, point, polygon)
+        test2 = test1
         if test1 != test2:
 
             point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.)])
