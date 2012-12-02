@@ -1,6 +1,8 @@
 __author__ = 'Nikita.Tolstikov'
 
 import shapefile
+import random
+from data import Point
 from data import Polygon
 from data import SortedPolygon
 from data import Country
@@ -130,45 +132,87 @@ class Builder(object):
 
         return graph
 
+    EPS = 0.00000001
     @staticmethod
-    def check_in(point, polygon):
+    def __det(a, b, c, d):
+        return a * d - b * c
 
+    @staticmethod
+    def __between(left, right, point):
+        return min(left, right) <= point + Builder.EPS <= max(left, right) + Builder.EPS
+
+    @staticmethod
+    def __intersection1d(a1, a2, b1, b2):
+        if a1 > a2:
+            a1, a2 = a2, a1
+        if b1 > b2:
+            b1, b2 = b2, b1
+        return max(a1, b1) <= min(a2, b2)
+
+    @staticmethod
+    def __intersection2d(p1, p2, p3, p4):
+        A1, B1 = p1.y - p2.y, p2.x - p1.x
+        C1 = -A1*p1.x - B1*p1.y
+
+        A2, B2 = p3.y - p4.y, p4.x - p3.x
+        C2 = -A2*p3.x - B2*p3.y
+
+        ux = p3.x if p3.y > p4.y else p4.x
+        uy = p3.y if p3.y > p4.y else p4.y
+
+        det = Builder.__det(A1, B1, A2, B2)
+        print str(p1) + ' ' + str(p2)
+        print str(p3) + ' ' + str(p4)
+        if abs(det) - Builder.EPS > 0 :
+            x = - Builder.__det(C1, B1, C2, B2) / det
+            y = - Builder.__det(A1, C1, A2, C2) / det
+            print x
+            print y
+            #f1 - check is in first segment
+            f1 = Builder.__between(p1.x, p2.x, x) and Builder.__between(p1.y, p2.y, y)
+            #f2 - check is in second segment
+            f2 = Builder.__between(p3.x, p4.x, x) and Builder.__between(p3.y, p4.y, y)
+            #f3 - x and y not upper point
+            f3 = abs(ux - x) < Builder.EPS and abs(uy - y) < Builder.EPS
+            return f1 and f2 and not f3
+        else:
+            #det == 0 => parallel lines
+            #f1 = matching lines test
+            f1 = abs(Builder.__det(A1, C1, A2, C2)) < 0 and abs(Builder.__det(B1, C1, B2, C2))
+            #f2 = simple 1d intersection
+            f2 = Builder.__intersection1d(p1.x, p2.x, p3.x, p4.x) and Builder.__intersection1d(p1.y, p2.y, p3.y, p4.y)
+            return  f1 and f2
+
+    @staticmethod
+    def __check_in_polygon(point1, point2, polygon):
+        x1, y1, x2, y2 = point1.x, point1.y, point2.x, point2.y
+        maxx, minx = max(x1,x2), min(x1,x2)
+        maxy, miny = max(y1,y2), min(y1,y2)
         points = polygon.points
         n = len(points)
-        x = point.x
-        y = point.y
-        inside = False
-
-        #check if point is a vertex
-        for p in points:
-            if p.x == x and p.y == y:
-                return True
-
-        #check if point is on a boundary
-        for i in xrange(n):
-            if i == 0:
-                p1 = points[-1]
-                p2 = points[0]
-            else:
-                p1 = points[i-1]
-                p2 = points[i]
-            if p1.y == p2.y and p1.y == y and min(p1.x, p2.x) < x < max(p1.x, p2.x):
-                if p1.x == p2.x and p1.x == x and min(p1.y, p2.y) < y < max(p1.y, p2.y):
-                    return True
-
-
-        p1x = points[0].x
-        p1y = points[0].y
+        lp1 = points[0]
+        lx1 = lp1.x
+        ly1 = lp1.y
+        isIn = False
         for i in xrange(n + 1):
-            p2x = points[i % n].x
-            p2y = points[i % n].y
-            if y > min(p1y,p2y):
-                if y <= max(p1y,p2y):
-                    if x <= max(p1x,p2x):
-                        if p1y != p2y:
-                            xints = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
-                        if p1x == p2x or x <= xints:
-                            inside = not inside
-            p1x,p1y = p2x,p2y
+            lp2 = points[i % n]
+            lx2 = lp2.x
+            ly2 = lp2.y
+            if lp1 == lp2:
+                continue
+            maxxl, minxl = max(lx1,lx2), min(lx1,lx2)
+            maxyl, minyl = max(ly1,ly2), min(ly1,ly2)
+            if minx > maxxl or maxx < minxl or miny > maxyl or maxy < minyl:
+                lp1, lx1, ly1 = lp2, lx2, ly2
+                continue
+            if Builder.__intersection2d(point1, point2, lp1, lp2):
+                isIn = not isIn
+            lp1, lx1, ly1 = lp2, lx2, ly2
+        return isIn
 
-        return inside
+    @staticmethod
+    def check_in(point, polygon):
+        leftx = polygon.get_sorted_points()[0].x
+        point1 = Point.Point([random.uniform(leftx - 10., leftx - 1.), point.y])
+        return Builder.__check_in_polygon(point1, point, polygon)
+
