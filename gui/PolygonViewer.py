@@ -5,6 +5,8 @@ from PyQt4 import QtOpenGL, QtGui, QtCore
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+from data.Polygon import Polygon
+
 
 # Low-level class, handles drawing, scaling, etc
 class PolygonViewerImpl(QtOpenGL.QGLWidget):
@@ -21,6 +23,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.centerChanged.connect(self.updateGL)
         self.__scale = 1.0
         self.__center = QtCore.QPointF(0.0, 0.0)
+        self.__polygons = []
 
 
     def __set_projection(self, w, h):
@@ -71,39 +74,33 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     center = property(getCenter, setCenter)
 
 
+    def getPolygons(self):
+        return self.__polygons
+
+
+    @QtCore.pyqtSlot(list)
+    def setPolygons(self, polygons):
+        self.__polygons = polygons
+
+
+    polygons = property(getPolygons, setPolygons)
+
+
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
-        glColor(0.5, 1.0, 0.0)
-        glBegin(GL_POLYGON)
-        glVertex(0.0, 0.0, 0.0)
-        glVertex(0.0, 1.0, 0.0)
-        glVertex(1.0, 0.0, 0.0)
-        glEnd()
-
-        glColor(1.0, 0.5, 0.0)
-        glBegin(GL_POLYGON)
-        glVertex(0.0, 0.0, 0.0)
-        glVertex(0.0, -1.0, 0.0)
-        glVertex(-1.0, 0.0, 0.0)
-        glEnd()
-
-        glColor(0.0, 0.5, 1.0)
-        glBegin(GL_POLYGON)
-        glVertex(0.0, 0.0, 0.0)
-        glVertex(0.0, 1.0, 0.0)
-        glVertex(-1.0, 0.0, 0.0)
-        glEnd()
-
-        glColor(0.0, 1.0, 0.5)
-        glBegin(GL_POLYGON)
-        glVertex(0.0, 0.0, 0.0)
-        glVertex(0.0, -1.0, 0.0)
-        glVertex(1.0, 0.0, 0.0)
-        glEnd()
+        colors = [(0.5, 1.0, 0.0), (1.0, 0.5, 0.0), (0.0, 0.5, 1.0), (0.0, 1.0, 0.5)]
+        for n, poly in enumerate(self.polygons):
+            cl = colors[n % 4]
+            glColor(cl[0], cl[1], cl[2])
+            # Draw polygon
+            glBegin(GL_POLYGON)
+            for pt in poly.points:
+                glVertex(pt.x, pt.y, 0.0)
+            glEnd()
 
 
     def resizeGL(self, w, h):
@@ -170,10 +167,32 @@ class PolygonViewer(PolygonViewerImpl):
         self.__update_center(pos_diff)
 
 
-
 if __name__ == "__main__":
-    app = QtGui.QApplication(["Widget demo"])
-    win = PolygonViewer(None)
-    win.show()
+    def run_simple_test():
+        app = QtGui.QApplication(["Simple polygon-drawing demo"])
+        win = PolygonViewer(None)
+        win.show()
 
-    app.exec_()
+        poly_1 = Polygon([(0.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+        poly_2 = Polygon([(0.0, -1.0), (-1.0, 0.0), (0.0, 0.0)])
+        win.polygons = [poly_1, poly_2]
+
+        app.exec_()
+
+    def run_shapefile_test():
+        from algo.graph_builder import Builder, shapefile
+        shape_records = shapefile.Reader('../algo/graph_builder/WORLD_MAP/WORLD_MAP').shapeRecords()
+        polygons, _ = Builder.Builder.build_sorted_polygon_list(shape_records)
+
+        app = QtGui.QApplication(["Shapefiles test"])
+
+        win = PolygonViewer(None)
+        win.show()
+
+        win.polygons = polygons
+
+        app.exec_()
+
+    run_shapefile_test()
+
+
