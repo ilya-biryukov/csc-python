@@ -47,12 +47,10 @@ class SortedPolygon(Polygon):
     max_x = property(get_max_x)
 
     def get_sorted_points(self):
-        if not self.__sorted_points is None:
+        if self.__sorted_points is not None:
             return self.__sorted_points
-        self.__sorted_points = []
-        for point in self.points:
-            self.__sorted_points.append(SortedPoint(point.x, point.y, self.__id))
-        self.__sorted_points = sorted(self.__sorted_points, key = lambda point: point.x)
+        self.__sorted_points = [SortedPoint(point.x, point.y, self.__id) for point in self.points]
+        self.__sorted_points.sort(key = SortedPoint.get_x)
 
         leftx = self.__sorted_points[0].x
         i = 0
