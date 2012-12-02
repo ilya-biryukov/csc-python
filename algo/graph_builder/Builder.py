@@ -147,11 +147,11 @@ class Builder(object):
         #check if point is on a boundary
         for i in xrange(n):
             if i == 0:
-                p1 = polygon[-1]
-                p2 = polygon[0]
+                p1 = points[-1]
+                p2 = points[0]
             else:
-                p1 = polygon[i-1]
-                p2 = polygon[i]
+                p1 = points[i-1]
+                p2 = points[i]
             if p1.y == p2.y and p1.y == y and min(p1.x, p2.x) < x < max(p1.x, p2.x):
                 if p1.x == p2.x and p1.x == x and min(p1.y, p2.y) < y < max(p1.y, p2.y):
                     return True

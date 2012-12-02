@@ -6,7 +6,7 @@ class Polygon(object):
         """
         self.__points = []
         for p in points:
-            self.__points.append(p)
+            self.__points.append(Point(p))
         pass
 
     def get_points(self):
