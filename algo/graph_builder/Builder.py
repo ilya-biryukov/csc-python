@@ -118,7 +118,8 @@ class Builder(object):
                 if pid == p.pid:
                     continue
                 assert polygons[pid].id == pid
-                if polygons[pid].min_y <= p.y <= polygons[pid].max_y:
+                if polygons[pid].min_y <= p.y <= polygons[pid].max_y\
+                        and polygons[pid].min_x <= p.x <= polygons[pid].max_x:
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
             if p.is_last:
