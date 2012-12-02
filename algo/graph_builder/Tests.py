@@ -41,6 +41,7 @@ class BuilderTests(unittest.TestCase):
                     SortedPoint.SortedPoint(5., 1., 3),
                     SortedPoint.SortedPoint(0., 0., 4),
                     SortedPoint.SortedPoint(-1., -1., 5),
+                    SortedPoint.SortedPoint(9., 4., 6)
                     ]
         for p in pointsIn:
             self.assertFalse(Builder.Builder.check_in(p, self.test_polygon))
