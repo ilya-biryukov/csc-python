@@ -15,39 +15,38 @@ class Builder(object):
 
     @staticmethod
     def get_polygons_from_shape(shape):
-        parts = shape.parts
+        parts = list(shape.parts)
         del parts[0]
         num = len(shape.points)
         buf = []
         res_polygons = []
         for i in xrange(num):
-            if i == parts[0] and len(buf) > 0:
+            if len(parts) > 0 and i == parts[0] and len(buf) > 0:
                 res_polygons.append(Polygon.Polygon(buf))
                 buf = []
                 del parts[0]
             buf.append(shape.points[i])
-
+        if len(buf) > 0:
+            res_polygons.append(Polygon.Polygon(buf))
         return res_polygons
 
     @staticmethod
     def get_sorted_polygons_from_shape(shape, now_ind):
         parts = shape.parts
         current_part = 1
-        if len(parts) <= 1:
-            return [], 0
         num = len(shape.points)
         buf = []
         res_polygons = []
         for i in xrange(num):
-            if i == parts[current_part] and len(buf) > 0:
+            if len(parts) > current_part and i == parts[current_part] and len(buf) > 0:
                 res_polygons.append(SortedPolygon.SortedPolygon(buf, now_ind))
                 now_ind += 1
                 buf = []
                 current_part += 1
-                if current_part >= len(parts):
-                    break
             buf.append(shape.points[i])
-
+        if len(buf) > 0:
+            res_polygons.append(SortedPolygon.SortedPolygon(buf, now_ind))
+            now_ind += 1
         return res_polygons, now_ind
 
     @staticmethod
@@ -60,7 +59,7 @@ class Builder(object):
     def build_country_sorted(shape_record, country_name_record_id, now_id):
         polygons, new_id =  Builder.get_sorted_polygons_from_shape(shape_record.shape, now_id)
         name = shape_record.record[country_name_record_id]
-        return Country.Country(name, polygons), now_id
+        return Country.Country(name, polygons), new_id
 
     @staticmethod
     def build_sorted_polygon_list(shape_records):

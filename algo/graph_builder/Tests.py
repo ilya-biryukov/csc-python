@@ -77,3 +77,29 @@ class BuilderTests(unittest.TestCase):
         self.assertTrue(graph.is_adjacent_vertices(0, 2), '0 and 2 dont adj')
         self.assertTrue(graph.is_adjacent_vertices(2, 0), '2 and 0 dont adj')
         self.assertFalse(graph.is_adjacent_vertices(1, 2), '2 and 0 is adj')
+
+    def test_build_country(self):
+        for sr in self.shape_records:
+            country = Builder.Builder.build_country(sr, 4)
+            self.assertEquals(country.name, sr.record[4], 'Name not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
+            self.assertEqual(len(country.polygons), len(sr.shape.parts), 'Parts count not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
+            pnum = 0
+            for pol in country.polygons:
+                pnum += len(pol.points)
+            self.assertEqual(pnum, len(sr.shape.points), 'Points number not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
+
+    def test_build_sorted_country(self):
+        now_id = 0
+        for sr in self.shape_records:
+            country, new_id = Builder.Builder.build_country_sorted(sr, 4, now_id)
+            self.assertEqual(new_id - now_id, len(country.polygons), 'Bad new index on {0}'.format(country.name))
+            self.assertEquals(country.name, sr.record[4], 'Name not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
+            self.assertEqual(len(country.polygons), len(sr.shape.parts), 'Parts count not equals Country - {0}-{1:d}, SR {2}-{3:d}'.format(country.name,len(country.polygons), sr.record[4], len(sr.shape.parts)))
+            pnum = 0
+            for pol in country.polygons:
+                pnum += len(pol.points)
+            self.assertEqual(pnum, len(sr.shape.points), 'Points number not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
+
+#    def test_build_contry_graph_2_not_adj(self):
+#        record = [self.shape_records[0], self.shape_records[1]]
+#        Builder.Builder.build_country_graph()
