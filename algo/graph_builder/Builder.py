@@ -106,12 +106,12 @@ class Builder(object):
 
     @staticmethod
     def build_polygons_graph(polygons, sorted_points):
-        opened = []
+        opened = set()
         graph = Graph.Graph(len(polygons))
         for p in sorted_points:
             if p.is_first:
                 if not p.pid in opened:
-                    opened.append(p.pid)
+                    opened.add(p.pid)
             for pid in opened:
                 if graph.is_adjacent_vertices(p.pid, pid):
                     continue
@@ -121,7 +121,6 @@ class Builder(object):
                 if polygons[pid].min_y <= p.y <= polygons[pid].max_y:
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
-                        graph.add_edge(pid, p.pid)
             if p.is_last:
                 assert p.pid in opened
                 opened.remove(p.pid)
