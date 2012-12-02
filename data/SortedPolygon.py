@@ -16,8 +16,8 @@ class SortedPolygon(Polygon):
     id = property(get_polygon_id)
 
     def __get_extreme_point(self):
-        self.__max_y = self.points[0]
-        self.__min_y = self.points[0]
+        self.__max_y = self.points[0].y
+        self.__min_y = self.points[0].y
         for p in self.points:
             if self.__max_y < p.y:
                 self.__max_y = p.y
@@ -38,8 +38,14 @@ class SortedPolygon(Polygon):
             return self.__sorted_points
         self.__sorted_points = []
         for point in self.points:
-            self.__sorted_points.append(SortedPoint(point, self.__id))
+            self.__sorted_points.append(SortedPoint(point.x, point.y, self.__id))
         self.__sorted_points = sorted(self.__sorted_points, key = lambda point: point.x)
-        self.__sorted_points[0].is_first = True
+
+        leftx = self.__sorted_points[0].x
+        i = 0
+        while leftx == self.__sorted_points[i].x:
+            self.__sorted_points[i].is_first = True
+            i += 1
+
         self.__sorted_points[-1].is_last = True
         return self.__sorted_points

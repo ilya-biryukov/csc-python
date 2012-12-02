@@ -34,6 +34,11 @@ class SortedPoint(Point):
     def __str__(self):
         return '({0:f};{1:f}):{2:d}'.format(self.x ,self.y, self.pid)
 
+    def __eq__(self, other):
+        if isinstance(other,Point):
+            return Point.__eq__(self, other)
+        return Point.__eq__(self, other) and self.pid == other.pid
+
     is_first = property(get_is_first, set_is_first)
     is_last = property(get_is_last, set_is_last)
     pid = property(get_polygon_id)

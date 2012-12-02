@@ -1,8 +1,8 @@
 class Graph(object):
     def __init__(self, vertices_count):
         # Initialize
-        self.__vertices = [list() for n in vertices_count]
-        self.__vertices_names = [list() for n in vertices_count]
+        self.__vertices = [list() for n in xrange(vertices_count)]
+        self.__vertices_names = [list() for n in xrange(vertices_count)]
         pass
 
     def add_vertex_name(self, vertex_id, vertex_name):
