@@ -29,16 +29,20 @@ class Builder(object):
     @staticmethod
     def get_sorted_polygons_from_shape(shape, now_ind):
         parts = shape.parts
-        del parts[0]
+        current_part = 1
+        if len(parts) <= 1:
+            return [], 0
         num = len(shape.points)
         buf = []
         res_polygons = []
         for i in xrange(num):
-            if i == parts[0] and len(buf) > 0:
+            if i == parts[current_part] and len(buf) > 0:
                 res_polygons.append(SortedPolygon.SortedPolygon(buf, now_ind))
                 now_ind += 1
                 buf = []
-                del parts[0]
+                current_part += 1
+                if current_part >= len(parts):
+                    break
             buf.append(shape.points[i])
 
         return res_polygons, now_ind
@@ -59,10 +63,10 @@ class Builder(object):
     def build_sorted_polygon_list(shape_records):
         now_id = 0
         now_sr = 0
-        id_map = []
+        id_map = {}
         polygons = []
         for sr in shape_records:
-            now_polygons, new_id = Builder.get_sorted_polygons_from_shape(sr, now_id)
+            now_polygons, new_id = Builder.get_sorted_polygons_from_shape(sr.shape, now_id)
             for id in xrange(now_id, new_id):
                 id_map[now_sr] = id
             now_id = new_id
