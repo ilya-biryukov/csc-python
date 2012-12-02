@@ -107,12 +107,6 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
 
-#    def test_build_all_countries_graph(self):
-#        graph = Builder.Builder.build_country_graph(self.shape_records)
-#        self.assertEquals(graph.get_vertices_count(), len(self.shape_records), 'Length not equals')
-#        for i in xrange(self.shape_records):
-#            self.assertEquals(graph.get_vertex_name(i), self.shape_records[i].record[4], 'Name not equals Graph - {0}, SR {1}'.format(graph.get_vertex_name(i), self.shape_records[i].record[4]))
-#            #self.assertEqual(len(country.polygons), len(sr.shape.parts), 'Parts count not equals Country - {0}-{1:d}, SR {2}-{3:d}'.format(country.name,len(country.polygons), sr.record[4], len(sr.shape.parts)))
 
     def test_build_part_countries_graph(self):
         records = self.shape_records[0:2]
@@ -120,3 +114,7 @@ class BuilderTests(unittest.TestCase):
         self.assertEquals(graph.get_vertices_count(), len(records), 'Length not equals')
         for i in xrange(len(records)):
             self.assertEquals(graph.get_vertex_name(i), records[i].record[4], 'Name not equals Graph - {0}, SR {1}'.format(graph.get_vertex_name(i), records[i].record[4]))
+
+
+if __name__ == "__main__":
+    unittest.main()
