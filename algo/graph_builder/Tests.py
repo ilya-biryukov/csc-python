@@ -59,10 +59,11 @@ class BuilderTests(unittest.TestCase):
             self.assertFalse(Builder.Builder.check_in(p, self.test_polygon), 'Incorrect point %s' % p)
 
     def test_sorted_points(self):
-        polygons = [self.test_polygon, self.additional_polygon_1, self.additional_polygon_2]
-        n = len(self.additional_polygon_1.points)
-        n += len(self.additional_polygon_2.points)
-        n += len(self.test_polygon.points)
+        polygons, ind = Builder.Builder.build_sorted_polygon_list(self.shape_records)
+        #n = len(self.additional_polygon_1.points)
+        #n += len(self.additional_polygon_2.points)
+        #n += len(self.test_polygon.points)
+        n = 403151
         sorted_points = list(Builder.Builder.sorted_points(polygons))
         self.assertEquals(len(sorted_points), n)
         for i in xrange(1, n):
@@ -107,6 +108,15 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
 
+
+
+    def test_build_country_graph_2_adj(self):
+        records = [Builder.Builder.find_country_record('Russia', self.shape_records), Builder.Builder.find_country_record('Ukraine', self.shape_records)]
+        graph = Builder.Builder.build_country_graph(records)
+        self.assertEqual(graph.get_vertices_count(), 2, 'Count of vertex not correct')
+        self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
+        self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
+        self.assertTrue(graph.is_adjacent_vertices(0, 1), 'Vertices not adj')
 
     def test_build_part_countries_graph(self):
         records = self.shape_records[0:2]
