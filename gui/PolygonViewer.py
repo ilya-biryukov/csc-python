@@ -5,7 +5,7 @@ from PyQt4 import QtOpenGL, QtGui, QtCore
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from gui.gl_util import triangulate
+from gui.gl_util import triangulate_and_create_painter, PolygonPainter
 
 from data.Polygon import Polygon
 
@@ -15,6 +15,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
     scaleChanged = QtCore.pyqtSignal(float)
     centerChanged = QtCore.pyqtSignal(QtCore.QPointF)
+
     __MAX_SCALE = 10.0
     __MIN_SCALE = 0.01
 
@@ -25,11 +26,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.centerChanged.connect(self.updateGL)
         self.__scale = 1.0
         self.__center = QtCore.QPointF(0.0, 0.0)
-        self.setPolygons([])
-
-
-    def __prepare_polygons(self, polygons):
-        return triangulate(polygons)
+        self.__polygon_painter = PolygonPainter([])
 
 
     def __set_projection(self, w, h):
@@ -80,11 +77,9 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     center = property(getCenter, setCenter)
 
 
-    @QtCore.pyqtSlot(list)
-    def setPolygons(self, polygons):
-        self.__polygon_painter = self.__prepare_polygons(polygons)
-        self.makeCurrent()
-        self.__polygon_painter.init_vbo()
+    def set_polygon_painter(self, painter):
+        self.__polygon_painter = painter
+        self.updateGL()
 
 
     def paintGL(self):
@@ -117,11 +112,28 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
 
 
+class TriangulatePolygonsThread(QtCore.QThread):
+    painterReady = QtCore.pyqtSignal(PolygonPainter)
+
+    def __init__(self, parent, polygons):
+        QtCore.QThread.__init__(self, parent)
+        self.__polygons = polygons
+
+    def run(self):
+        painter = triangulate_and_create_painter(self.__polygons)
+        self.painterReady.emit(painter)
+
+
+
 # Handles user interaction
 class PolygonViewer(PolygonViewerImpl):
+
+    polygonsPreparing = QtCore.pyqtSignal(bool)
+
     def __init__(self, parent):
         PolygonViewerImpl.__init__(self, parent)
 
+        self.__preparing_polygons = False
         self.__last_coord = QtCore.QPoint(0, 0)
         self.setMouseTracking(False)
 
@@ -132,6 +144,30 @@ class PolygonViewer(PolygonViewerImpl):
         (cx, cy, _) = gluProject(self.center.x(), self.center.y(), 0.0)
         (nx, ny, _) = gluUnProject(cx + coord_diff.x(), cy + coord_diff.y(), 0.0)
         self.center = QtCore.QPointF(nx, ny)
+
+
+    def __spawn_preparing_thread(self, polygons):
+        thread = TriangulatePolygonsThread(self, polygons)
+        thread.painterReady.connect(self.__on_polygon_painter_ready)
+        thread.start()
+
+
+    @QtCore.pyqtSlot(PolygonPainter)
+    def __on_polygon_painter_ready(self, painter):
+        assert self.__preparing_polygons, "__preparing_polygons wasn't set"
+        self.set_polygon_painter(painter)
+        self.__preparing_polygons = False
+        self.polygonsPreparing.emit(False)
+
+
+    def tryBeginSetPolygons(self, polygons):
+        if self.__preparing_polygons:
+            return False
+        self.__preparing_polygons = True
+        self.polygonsPreparing.emit(True)
+
+        self.__spawn_preparing_thread(polygons)
+        return True
 
 
     def __set_cursor_shape(self, shape):
@@ -187,7 +223,7 @@ if __name__ == "__main__":
         win = PolygonViewer(None)
         win.show()
 
-        win.setPolygons(polygons)
+        win.tryBeginSetPolygons(polygons)
 
 #        win.setPolygons([Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)]),\
 #                         Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 10.0), (1.0, 20.0)])])

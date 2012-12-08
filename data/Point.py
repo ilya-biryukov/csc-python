@@ -1,9 +1,9 @@
 __author__ = 'Nikita.Tolstikov'
 
 class Point:
-    def __init__(self, coordinates):
-        self.__x  = coordinates[0]
-        self.__y  = coordinates[1]
+    def __init__(self, x, y):
+        self.__x  = x
+        self.__y  = y
 
     def get_x(self):
         return self.__x

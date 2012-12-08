@@ -155,7 +155,7 @@ class Tessellator(object):
 
 
 
-def triangulate(polygons):
+def triangulate_and_create_painter(polygons):
     tess = Tessellator()
     for n, p in enumerate(polygons):
         tess.tessellate(n, p)

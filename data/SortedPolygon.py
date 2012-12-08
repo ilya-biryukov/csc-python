@@ -1,7 +1,6 @@
 __author__ = 'Nikita.Tolstikov'
 from Polygon import Polygon
 from SortedPoint import SortedPoint
-from Point import Point
 
 class SortedPolygon(Polygon):
     def __init__(self, points, polygon_id):
@@ -16,13 +15,19 @@ class SortedPolygon(Polygon):
     id = property(get_polygon_id)
 
     def __get_extreme_point(self):
+        self.__max_x = self.points[0].x
         self.__max_y = self.points[0].y
+        self.__min_x = self.points[0].x
         self.__min_y = self.points[0].y
         for p in self.points:
             if self.__max_y < p.y:
                 self.__max_y = p.y
             if self.__min_y > p.y:
                 self.__min_y = p.y
+            if self.__max_x < p.x:
+                self.__max_x = p.x
+            if self.__min_x > p.x:
+                self.__min_x = p.x
 
     def get_max_y(self):
         return self.__max_y
@@ -30,16 +35,22 @@ class SortedPolygon(Polygon):
     def get_min_y(self):
         return self.__min_y
 
+    def get_max_x(self):
+        return self.__max_x
+
+    def get_min_x(self):
+        return self.__min_x
+
     min_y = property(get_min_y)
     max_y = property(get_max_y)
+    min_x = property(get_min_x)
+    max_x = property(get_max_x)
 
     def get_sorted_points(self):
-        if not self.__sorted_points is None:
+        if self.__sorted_points is not None:
             return self.__sorted_points
-        self.__sorted_points = []
-        for point in self.points:
-            self.__sorted_points.append(SortedPoint(point.x, point.y, self.__id))
-        self.__sorted_points = sorted(self.__sorted_points, key = lambda point: point.x)
+        self.__sorted_points = [SortedPoint(point.x, point.y, self.__id) for point in self.points]
+        self.__sorted_points.sort(key = SortedPoint.get_x)
 
         leftx = self.__sorted_points[0].x
         i = 0

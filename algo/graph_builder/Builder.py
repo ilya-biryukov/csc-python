@@ -106,22 +106,22 @@ class Builder(object):
 
     @staticmethod
     def build_polygons_graph(polygons, sorted_points):
-        opened = []
+        opened = set()
         graph = Graph.Graph(len(polygons))
         for p in sorted_points:
             if p.is_first:
                 if not p.pid in opened:
-                    opened.append(p.pid)
+                    opened.add(p.pid)
             for pid in opened:
                 if graph.is_adjacent_vertices(p.pid, pid):
                     continue
                 if pid == p.pid:
                     continue
-                #assert polygons[pid].id == pid
-                if polygons[pid].min_y <= p.y <= polygons[pid].max_y:
+                assert polygons[pid].id == pid
+                if polygons[pid].min_y <= p.y <= polygons[pid].max_y\
+                        and polygons[pid].min_x <= p.x <= polygons[pid].max_x:
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
-                        graph.add_edge(pid, p.pid)
             if p.is_last:
                 #assert p.pid in opened
                 opened.remove(p.pid)
@@ -232,14 +232,14 @@ class Builder(object):
         leftx = polygon.get_sorted_points()[0].x
         upy = polygon.max_y
         downy = polygon.min_y
-        point1 = Point.Point([random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.)])
+        point1 = Point.Point(random.uniform(leftx - 20., leftx - 10.), random.uniform(upy + 10., upy + 20.))
         test1 = Builder.__check_in_polygon(point1, point, polygon)
         #point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(upy + 10., upy + 20.)])
         #test2 = Builder.__check_in_polygon(point1, point, polygon)
         test2 = test1
         if test1 != test2:
 
-            point1 = Point.Point([random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.)])
+            point1 = Point.Point(random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.))
             return Builder.__check_in_polygon(point1, point, polygon)
         else:
             return test1

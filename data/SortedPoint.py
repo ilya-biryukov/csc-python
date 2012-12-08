@@ -4,14 +4,8 @@ from Point import Point
 import string
 
 class SortedPoint(Point):
-    def __init__(self, coordinates, polygon_id, is_first = False, is_last = False):
-        Point.__init__(self, coordinates)
-        self.__polygon_id = polygon_id
-        self.__is_first = is_first
-        self.__is_last = is_last
-
     def __init__(self, x, y, polygon_id, is_first = False, is_last = False):
-        Point.__init__(self, [x,y])
+        Point.__init__(self, x, y)
         self.__polygon_id = polygon_id
         self.__is_first = is_first
         self.__is_last = is_last
