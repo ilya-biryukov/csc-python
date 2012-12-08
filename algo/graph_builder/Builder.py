@@ -244,3 +244,9 @@ class Builder(object):
         else:
             return test1
 
+    @staticmethod
+    def find_country_record(cname, records):
+        for r in records:
+            if r.record[4] == cname:
+                return r
+
