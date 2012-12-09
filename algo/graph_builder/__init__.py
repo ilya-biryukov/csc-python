@@ -1,6 +1,6 @@
+from data import shapefile
+import Builder
 __author__ = 'Man'
-
-import shapefile
 
 reader = shapefile.Reader('WORLD_MAP/WORLD_MAP')
 sr = reader.shapeRecords()

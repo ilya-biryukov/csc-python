@@ -1,3 +1,5 @@
+from data import shapefile
+
 __author__ = 'ilya'
 
 from PyQt4 import QtOpenGL, QtGui, QtCore
@@ -214,7 +216,8 @@ if __name__ == "__main__":
         app.exec_()
 
     def run_shapefile_test():
-        from algo.graph_builder import Builder, shapefile
+        from algo.graph_builder import Builder
+
         shape_records = shapefile.Reader('../algo/graph_builder/WORLD_MAP/WORLD_MAP').shapeRecords()
         polygons, _ = Builder.Builder.build_sorted_polygon_list(shape_records)
 
