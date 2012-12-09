@@ -10,7 +10,7 @@ class TestExact(unittest.TestCase):
     def test_simple_case(self):
         graph = Graph.Graph(2)
         graph.add_edge(0,1)
-        colors = self.exact.getColorsByGraph(graph)
+        colors = self.exact.get_colors_by_graph(graph)
         self.assertEqual(2,len(colors))
         self.assertEqual(0,colors[0])
         self.assertEqual(1,colors[1])
@@ -19,7 +19,7 @@ class TestExact(unittest.TestCase):
         graph = Graph.Graph(3)
         graph.add_edge(0,1)
         graph.add_edge(1,2)
-        colors = self.exact.getColorsByGraph(graph)
+        colors = self.exact.get_colors_by_graph(graph)
         self.assertEqual(3,len(colors))
         self.assertEqual(0,colors[0])
         self.assertEqual(1,colors[1])
@@ -31,7 +31,7 @@ class TestExact(unittest.TestCase):
         graph.add_edge(1,2)
         graph.add_edge(0,2)
 
-        colors = self.exact.getColorsByGraph(graph)
+        colors = self.exact.get_colors_by_graph(graph)
 
         self.assertEqual(3,len(colors))
         self.assertEqual(0,colors[0])
@@ -45,7 +45,7 @@ class TestExact(unittest.TestCase):
         graph.add_edge(2,3)
         graph.add_edge(0,3)
 
-        colors = self.exact.getColorsByGraph(graph)
+        colors = self.exact.get_colors_by_graph(graph)
 
         self.assertEqual(4,len(colors))
         self.assertEqual(0,colors[0])

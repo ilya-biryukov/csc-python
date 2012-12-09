@@ -7,35 +7,35 @@ class Exact(object):
     def __init__(self, results):
         self.results = results
 
-    def getColorsByGraph(self, graph):
+    def get_colors_by_graph(self, graph):
         colors = []
-        self.getColors(graph,0,[],0)
+        self.get_colors(graph,0,[],0)
         answer = []
-        for colorCount in range(0,3):
-            if (self.results.keys().__contains__(colorCount)):
-                answer = self.results[colorCount]
+        for color_count in range(0,3):
+            if color_count in self.results.keys():
+                answer = self.results[color_count]
                 break
-        resuts = {}
+        results = {}
         return answer
 
 
-    def getColors(self, graph, vertNumber, colors, maxColor):
-        if (maxColor > 3):
-            return ;
-        if (vertNumber >= graph.get_vertices_count()):
-            if (not self.results.keys().__contains__(maxColor)):
-                self.results[maxColor] = colors[:]
-            return ;
+    def get_colors(self, graph, vert_number, colors, max_color):
+        if max_color > 3:
+            return
+        if vert_number >= graph.get_vertices_count():
+            if max_color not in self.results.keys():
+                self.results[max_color] = colors[:]
+            return
         for color in range(0,3):
-            colorGood = True
-            for adjacentVert in range(0,vertNumber):
-                if (graph.is_adjacent_vertices(adjacentVert,vertNumber) and color==colors[adjacentVert]):
-                    colorGood = False
-            if (colorGood):
-                colors.insert(vertNumber,color)
-                colorWas = maxColor
-                if (maxColor < color):
-                    maxColor = color
-                self.getColors(graph,vertNumber+1,colors,maxColor)
-                maxColor = colorWas
-                colors.pop(vertNumber)
+            color_good = True
+            for adjacent_vert in range(0,vert_number):
+                if graph.is_adjacent_vertices(adjacent_vert,vert_number) and color==colors[adjacent_vert]:
+                    color_good = False
+            if color_good:
+                colors.insert(vert_number,color)
+                color_was = max_color
+                if max_color < color:
+                    max_color = color
+                self.get_colors(graph,vert_number+1,colors,max_color)
+                max_color = color_was
+                colors.pop(vert_number)
