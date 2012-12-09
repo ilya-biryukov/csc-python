@@ -2,12 +2,10 @@ import math
 
 __author__ = 'Nikita.Tolstikov'
 
-import shapefile
 import random
-from data import Point
+from data import Point, shapefile
 from data import Polygon
 from data import SortedPolygon
-from data import SortedPoint
 from data import Country
 from data import Graph
 

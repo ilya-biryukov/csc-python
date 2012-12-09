@@ -1,9 +1,8 @@
 __author__ = 'Tolstikov.Nikita'
 
 import unittest
-import shapefile
 import Builder
-from data import SortedPoint
+from data import SortedPoint, shapefile
 from data import SortedPolygon
 
 class BuilderTests(unittest.TestCase):
