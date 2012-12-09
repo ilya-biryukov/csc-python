@@ -30,8 +30,8 @@ class Graph(object):
         return vertex_id2 in self.__vertices[vertex_id1]
 
     def merge_by_map(self, id_map):
-        new_vertices = [[] for n in repeat(None,len(id_map.keys()))]
-        new_names    = [[] for n in repeat(None,len(id_map.keys()))]
+        new_vertices = [list() for n in xrange(len(id_map.keys()))]
+        new_names    = ['' for n in xrange(len(id_map.keys()))]
         for key in id_map.keys():
             for ver in id_map[key]:
                 for aver in self.__vertices[ver]:
