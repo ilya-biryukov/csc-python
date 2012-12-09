@@ -1,3 +1,5 @@
+import math
+
 __author__ = 'Nikita.Tolstikov'
 
 import shapefile
@@ -105,10 +107,14 @@ class Builder(object):
         return Builder.merge(sorted_points)
 
     @staticmethod
-    def build_polygons_graph(polygons, sorted_points):
+    def build_polygons_graph(polygons, sorted_points, p_to_c = None, cnum = None):
         opened = set()
         graph = Graph.Graph(len(polygons))
+        if not p_to_c is None:
+            cgraph = Graph.Graph(cnum)
         for p in sorted_points:
+            if abs(p.x + 8.204722) < Builder.EPS:
+                print 'I found it'
             if p.is_first:
                 if not p.pid in opened:
                     opened.add(p.pid)
@@ -120,11 +126,19 @@ class Builder(object):
                 assert polygons[pid].id == pid
                 if polygons[pid].min_y <= p.y <= polygons[pid].max_y\
                         and polygons[pid].min_x <= p.x <= polygons[pid].max_x:
+                    if not p_to_c is None:
+                        if p_to_c[pid] == p_to_c[p.pid] or cgraph.is_adjacent_vertices(p_to_c[pid], p_to_c[p.pid]):
+                            continue
                     if Builder.check_in(p, polygons[pid]):
                         graph.add_edge(p.pid, pid)
+                        graph.add_edge(pid, p.pid)
+                        cgraph.add_edge(p_to_c[p.pid], p_to_c[pid])
+                        cgraph.add_edge(p_to_c[pid], p_to_c[p.pid])
             if p.is_last:
                 #assert p.pid in opened
                 opened.remove(p.pid)
+        if not p_to_c is None:
+            return cgraph
         return graph
 
     @staticmethod
@@ -134,13 +148,21 @@ class Builder(object):
         print 'Build all polygons ' + str(len(polygons))
         sorted_points = Builder.sorted_points(polygons)
         #print 'Merged points' + str(len(sorted_points))
-        graph = Builder.build_polygons_graph(polygons, sorted_points)
+        p_to_c = Builder.invert_dic(id_map)
+        graph = Builder.build_polygons_graph(polygons, sorted_points, p_to_c, len(shape_records))
         print 'Build graph'
-        graph.merge_by_map(id_map)
+#        graph.merge_by_map(id_map)
         for i in xrange(len(shape_records)):
             graph.add_vertex_name(i, shape_records[i].record[4])
-
         return graph
+
+    @staticmethod
+    def invert_dic(dic):
+        val_dic = {}
+        for key in dic.keys():
+            for ver in dic[key]:
+                val_dic[ver] = key
+        return val_dic
 
     EPS = 0.00000001
     @staticmethod
@@ -196,35 +218,16 @@ class Builder(object):
             f2 = Builder.__intersection1d(p1.x, p2.x, p3.x, p4.x) and Builder.__intersection1d(p1.y, p2.y, p3.y, p4.y)
             return  f1 and f2
 
+
+    THRESHOLD = 0.00001
     @staticmethod
     def __check_in_polygon(point1, point2, polygon):
-        x1, y1, x2, y2 = point1.x, point1.y, point2.x, point2.y
-        maxx, minx = max(x1,x2), min(x1,x2)
-        maxy, miny = max(y1,y2), min(y1,y2)
         points = polygon.points
-        n = len(points)
-        lp1 = points[0]
-        lx1 = lp1.x
-        ly1 = lp1.y
-        isIn = False
-        for i in xrange(n + 1):
-            lp2 = points[i % n]
-            lx2 = lp2.x
-            ly2 = lp2.y
-            if lp1 == lp2:
-                continue
-            maxxl, minxl = max(lx1,lx2), min(lx1,lx2)
-            maxyl, minyl = max(ly1,ly2), min(ly1,ly2)
-            if minx > maxxl or maxx < minxl or miny > maxyl or maxy < minyl:
-                lp1, lx1, ly1 = lp2, lx2, ly2
-                continue
-            res = Builder.__intersection2d(point1, point2, lp1, lp2)
-            if res == 'On':
+        for p in points:
+            if Builder.__dist(p, point2) < Builder.THRESHOLD:
                 return True
-            if res:
-                isIn = not isIn
-            lp1, lx1, ly1 = lp2, lx2, ly2
-        return isIn
+        Builder.IsFirst = False
+        return False
 
     @staticmethod
     def check_in(point, polygon):
@@ -238,7 +241,6 @@ class Builder(object):
         #test2 = Builder.__check_in_polygon(point1, point, polygon)
         test2 = test1
         if test1 != test2:
-
             point1 = Point.Point(random.uniform(rightx + 10., rightx + 20.), random.uniform(downy - 20., downy - 10.))
             return Builder.__check_in_polygon(point1, point, polygon)
         else:
@@ -249,4 +251,8 @@ class Builder(object):
         for r in records:
             if r.record[4] == cname:
                 return r
+
+    @staticmethod
+    def __dist(point1, point2):
+        return math.sqrt(math.pow((point1.x - point2.x),2.) + math.pow((point1.y - point2.y),2.))
 

@@ -29,14 +29,21 @@ class Graph(object):
     def is_adjacent_vertices(self, vertex_id1, vertex_id2):
         return vertex_id2 in self.__vertices[vertex_id1]
 
-    def merge_by_map(self, id_map):
-        new_vertices = [list() for n in xrange(len(id_map.keys()))]
-        new_names    = ['' for n in xrange(len(id_map.keys()))]
-        for key in id_map.keys():
-            for ver in id_map[key]:
+    def merge_by_map(self, c_to_p):
+        new_vertices = [list() for n in xrange(len(c_to_p.keys()))]
+        new_names    = ['' for n in xrange(len(c_to_p.keys()))]
+
+        p_to_c = {}
+        for key in c_to_p.keys():
+            for ver in c_to_p[key]:
+                p_to_c[ver] = key
+
+        for key in c_to_p.keys():
+            for ver in c_to_p[key]:
                 for aver in self.__vertices[ver]:
                     if not aver in new_vertices[key]:
-                        new_vertices[key].append(aver)
+                        new_vertices[key].append(p_to_c[aver])
+
         self.__vertices = new_vertices
         self.__vertices_names = new_names
 

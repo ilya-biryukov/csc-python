@@ -30,20 +30,6 @@ class BuilderTests(unittest.TestCase):
                                                                  (4., 0.),
                                                                  (8., 0.)], 2)
 
-    def test_check_in_in(self):
-        """
-         Test for correct work check_in function for in
-        """
-        pointsIn = [SortedPoint.SortedPoint(2., 2., 1),
-                    SortedPoint.SortedPoint(3., 2., 2),
-                    SortedPoint.SortedPoint(4., 3., 3),
-                    SortedPoint.SortedPoint(2., 3., 4),
-                    SortedPoint.SortedPoint(7.5, 3.5, 5),
-                    SortedPoint.SortedPoint(6., 4., 6),
-                    ]
-        for p in pointsIn:
-            self.assertTrue(Builder.Builder.check_in(p, self.test_polygon),'Incorrect point %s' % p)
-
     def test_check_in_out(self):
         """
          Test for correct work check_in function for out
@@ -68,16 +54,6 @@ class BuilderTests(unittest.TestCase):
         self.assertEquals(len(sorted_points), n)
         for i in xrange(1, n):
             self.assertTrue(sorted_points[i].x >= sorted_points[i - 1], 'Bad point {0} with index {1: d}'.format(str(sorted_points[i]), i))
-
-    def test_build_polygons_graph(self):
-        polygons = [self.test_polygon, self.additional_polygon_1, self.additional_polygon_2]
-        sorted_points = Builder.Builder.sorted_points(polygons)
-        graph = Builder.Builder.build_polygons_graph(polygons, sorted_points)
-        self.assertTrue(graph.is_adjacent_vertices(0, 1), '0 and 1 dont adj')
-        self.assertTrue(graph.is_adjacent_vertices(1, 0), '1 and 0 dont adj')
-        self.assertTrue(graph.is_adjacent_vertices(0, 2), '0 and 2 dont adj')
-        self.assertTrue(graph.is_adjacent_vertices(2, 0), '2 and 0 dont adj')
-        self.assertFalse(graph.is_adjacent_vertices(1, 2), '2 and 0 is adj')
 
     def test_build_country(self):
         for sr in self.shape_records:
@@ -108,22 +84,32 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
 
-
+    def test_build_country_graph_adj_not_adj(self):
+        records = [Builder.Builder.find_country_record('Portugal', self.shape_records), Builder.Builder.find_country_record('Spain', self.shape_records), self.shape_records[0]]
+        graph = Builder.Builder.build_country_graph(records)
+        self.assertEqual(graph.get_vertices_count(), 3, 'Count of vertex not correct')
+        self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
+        self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
+        self.assertEqual(graph.get_vertex_name(2), records[2].record[4], 'Names not equals')
+        self.assertTrue(graph.is_adjacent_vertices(0, 1), 'Vertices not adj')
+        self.assertTrue(graph.is_adjacent_vertices(1, 0), 'Vertices not adj')
+        self.assertFalse(graph.is_adjacent_vertices(0, 2), 'Vertices adj')
+        self.assertFalse(graph.is_adjacent_vertices(2, 1), 'Vertices adj')
 
     def test_build_country_graph_2_adj(self):
-        records = [Builder.Builder.find_country_record('Russia', self.shape_records), Builder.Builder.find_country_record('Ukraine', self.shape_records)]
+        records = [Builder.Builder.find_country_record('Portugal', self.shape_records), Builder.Builder.find_country_record('Spain', self.shape_records)]
         graph = Builder.Builder.build_country_graph(records)
         self.assertEqual(graph.get_vertices_count(), 2, 'Count of vertex not correct')
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
         self.assertTrue(graph.is_adjacent_vertices(0, 1), 'Vertices not adj')
 
-    def test_build_part_countries_graph(self):
-        records = self.shape_records[0:2]
-        graph = Builder.Builder.build_country_graph(records)
-        self.assertEquals(graph.get_vertices_count(), len(records), 'Length not equals')
-        for i in xrange(len(records)):
-            self.assertEquals(graph.get_vertex_name(i), records[i].record[4], 'Name not equals Graph - {0}, SR {1}'.format(graph.get_vertex_name(i), records[i].record[4]))
+#    def test_build_part_countries_graph(self):
+#        records = self.shape_records
+#        graph = Builder.Builder.build_country_graph(records)
+#        self.assertEquals(graph.get_vertices_count(), len(records), 'Length not equals')
+#        for i in xrange(len(records)):
+#            self.assertEquals(graph.get_vertex_name(i), records[i].record[4], 'Name not equals Graph - {0}, SR {1}'.format(graph.get_vertex_name(i), records[i].record[4]))
 
 
 if __name__ == "__main__":
