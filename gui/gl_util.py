@@ -1,3 +1,4 @@
+from itertools import repeat
 import random
 
 __author__ = 'ilya'
@@ -14,7 +15,6 @@ class MarkedList(object):
 
 
     def mark(self, m):
-        self.__current_mark = m
         self.__marks.append((len(self.__lst), m))
 
 
@@ -23,7 +23,7 @@ class MarkedList(object):
 
 
     def get_marks(self):
-        if not self.__marks:
+        if not len(self.__marks):
             return
         prev_m = self.__marks[0]
         for m in self.__marks[1:]:
@@ -32,6 +32,19 @@ class MarkedList(object):
             prev_m = m
         if prev_m[0] != len(self.__lst):
             yield prev_m
+
+
+    def get_marked_intervals(self):
+        prev_mark = None
+        for m in self.get_marks():
+            if prev_mark is None:
+                prev_mark = m
+                continue
+            yield (prev_mark[0], m[0], prev_mark[1])
+            prev_mark = m
+        if prev_mark is not None:
+            yield (prev_mark[0], len(self.__lst), prev_mark[1])
+
 
 
     def get_list(self):
@@ -150,9 +163,16 @@ class Tessellator(object):
 
     def compose_result(self):
         pts = self.__triangles
-        # TODO: Colors
-        return PolygonPainter(pts.get_list())
+        colors = self.__compose_colors()
+        return PolygonPainter(pts.get_list(), colors)
 
+
+    def __compose_colors(self):
+        colors = list()
+        for mark_interval in self.__triangles.get_marked_intervals():
+            points_count = (mark_interval[1] - mark_interval[0]) / 2
+            colors.extend(repeat(mark_interval[2], points_count))
+        return colors
 
 
 
@@ -168,10 +188,9 @@ def triangulate_and_create_painter(countries):
 
 
 class PolygonPainter(object):
-    def __init__(self, pts):
-        #TODO: Colors
+    def __init__(self, pts, colors):
         self.__raw_pts = numpy.array(pts, 'f')
-        self.__raw_cls = numpy.array([random.random()  for _ in xrange(3 * len(self.__raw_pts))], 'f')
+        self.__raw_cls = numpy.array(self.__gen_colors(colors), 'f')
 
 
     def init_vbo(self):
@@ -182,10 +201,25 @@ class PolygonPainter(object):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
         glVertexPointer(2, GL_FLOAT, 0, self.__raw_pts)
-        glColorPointer(3, GL_FLOAT, 0, self.__raw_cls)
+        glColorPointer(4, GL_FLOAT, 0, self.__raw_cls)
 
-        glDrawArrays(GL_TRIANGLES, 0, len(self.__raw_pts) / 2)
+        points_count = len(self.__raw_pts) / 2
+        glDrawArrays(GL_TRIANGLES, 0, points_count)
 
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
 
+
+    def __gen_colors(self, colors):
+        color_map = dict()
+        generated_colors = list()
+        for cl in colors:
+            picked_color = None
+            if cl not in color_map:
+                new_color = (random.random(), random.random(), random.random(), 1.0)
+                color_map[cl] = new_color
+                picked_color = new_color
+            else:
+                picked_color = color_map[cl]
+            generated_colors.extend(picked_color)
+        return generated_colors
