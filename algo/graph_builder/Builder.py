@@ -280,3 +280,10 @@ class Builder(object):
     def __dist(point1, point2):
         return math.sqrt(math.pow((point1.x - point2.x),2.) + math.pow((point1.y - point2.y),2.))
 
+    @staticmethod
+    def build_all_countries():
+        shape_records = shapefile.Reader('WORLD_MAP/WORLD_MAP').shapeRecords()
+        countries = []
+        for sr in shape_records:
+            countries.append(Builder.build_country(sr, 4))
+        return countries

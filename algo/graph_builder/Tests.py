@@ -8,7 +8,7 @@ from data import SortedPolygon
 
 class BuilderTests(unittest.TestCase):
     def setUp(self):
-        self.shape_records = reader = shapefile.Reader('WORLD_MAP/WORLD_MAP').shapeRecords();
+        self.shape_records = shapefile.Reader('WORLD_MAP/WORLD_MAP').shapeRecords()
         self.test_polygon = SortedPolygon.SortedPolygon([(4., 3.),
                                                          (4., 1.),
                                                          (1., 1.),
@@ -56,8 +56,11 @@ class BuilderTests(unittest.TestCase):
             self.assertTrue(sorted_points[i].x >= sorted_points[i - 1], 'Bad point {0} with index {1: d}'.format(str(sorted_points[i]), i))
 
     def test_build_country(self):
+        countries = Builder.Builder.build_all_countries()
+        now_c  = 0
         for sr in self.shape_records:
-            country = Builder.Builder.build_country(sr, 4)
+            country = countries[now_c]
+            now_c += 1
             self.assertEquals(country.name, sr.record[4], 'Name not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
             self.assertEqual(len(country.polygons), len(sr.shape.parts), 'Parts count not equals Country - {0}, SR{1}'.format(country.name, sr.record[4]))
             pnum = 0
