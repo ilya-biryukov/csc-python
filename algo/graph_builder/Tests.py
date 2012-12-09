@@ -79,14 +79,14 @@ class BuilderTests(unittest.TestCase):
 
     def test_build_country_graph_2_not_adj(self):
         records = [self.shape_records[0], self.shape_records[1]]
-        graph = Builder.Builder.build_country_graph(records)
+        graph = Builder.Builder.build_country_graph_from_records(records)
         self.assertEqual(graph.get_vertices_count(), 2, 'Count of vertex not correct')
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
 
     def test_build_country_graph_adj_not_adj(self):
         records = [Builder.Builder.find_country_record('Portugal', self.shape_records), Builder.Builder.find_country_record('Spain', self.shape_records), self.shape_records[0]]
-        graph = Builder.Builder.build_country_graph(records)
+        graph = Builder.Builder.build_country_graph_from_records(records)
         self.assertEqual(graph.get_vertices_count(), 3, 'Count of vertex not correct')
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')
@@ -98,7 +98,7 @@ class BuilderTests(unittest.TestCase):
 
     def test_build_country_graph_2_adj(self):
         records = [Builder.Builder.find_country_record('Portugal', self.shape_records), Builder.Builder.find_country_record('Spain', self.shape_records)]
-        graph = Builder.Builder.build_country_graph(records)
+        graph = Builder.Builder.build_country_graph_from_records(records)
         self.assertEqual(graph.get_vertices_count(), 2, 'Count of vertex not correct')
         self.assertEqual(graph.get_vertex_name(0), records[0].record[4], 'Names not equals')
         self.assertEqual(graph.get_vertex_name(1), records[1].record[4], 'Names not equals')

@@ -142,7 +142,7 @@ class Builder(object):
         return graph
 
     @staticmethod
-    def build_country_graph(shape_records):
+    def build_country_graph_from_records(shape_records):
         """Main method returns graph of countries"""
         polygons, id_map  = Builder.build_sorted_polygon_list(shape_records)
         print 'Build all polygons ' + str(len(polygons))
@@ -154,6 +154,30 @@ class Builder(object):
 #        graph.merge_by_map(id_map)
         for i in xrange(len(shape_records)):
             graph.add_vertex_name(i, shape_records[i].record[4])
+        return graph
+
+    @staticmethod
+    def build_country_graph_from_countries(countries):
+        polygons = []
+        now_id = 0
+        now_c = 0
+        c_to_p = {}
+        for c in countries:
+            c_to_p[now_c] = list()
+            for p in c.get_polygons():
+                polygons.append(SortedPolygon.SortedPolygon(p.points,now_id))
+                c_to_p[now_c].append(now_id)
+                now_id += 1
+            now_c += 1
+
+        """Main method returns graph of countries"""
+        print 'Build all polygons ' + str(len(polygons))
+        sorted_points = Builder.sorted_points(polygons)
+        p_to_c = Builder.invert_dic(c_to_p)
+        graph = Builder.build_polygons_graph(polygons, sorted_points, p_to_c, len(countries))
+        print 'Build graph'
+        for i in xrange(len(countries)):
+            graph.add_vertex_name(i, countries[i].name)
         return graph
 
     @staticmethod
