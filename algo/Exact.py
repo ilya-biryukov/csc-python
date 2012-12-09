@@ -4,8 +4,8 @@ class Exact(object):
 
     results = {}
 
-    def __init__(self, results):
-        self.results = results
+    def __init__(self):
+        self.results = {}
 
     def get_colors_by_graph(self, graph):
         colors = []

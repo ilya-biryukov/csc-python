@@ -7,8 +7,8 @@ __author__ = 'Sergey Aganezov Jr.'
 
 class Heurstics(object):
 
-    def __init__(self, results):
-        self.__results = results
+    def __init__(self):
+        pass
 
     @classmethod
     def color_graph(cls, graph):
