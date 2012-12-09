@@ -142,8 +142,8 @@ class Tessellator(object):
 
         gluTessBeginPolygon(self.__tess, None)
         gluTessBeginContour(self.__tess)
-        for n in xrange(0, len(poly_points), 3):
-            gluTessVertex(self.__tess, poly_points[n : n + 3], poly_points[n : n + 3])
+        for pt in xrange(0, len(poly_points), 3):
+            gluTessVertex(self.__tess, poly_points[pt : pt + 3], poly_points[pt : pt + 3])
         gluTessEndContour(self.__tess)
         gluTessEndPolygon(self.__tess)
 
@@ -155,10 +155,14 @@ class Tessellator(object):
 
 
 
-def triangulate_and_create_painter(polygons):
+
+
+
+def triangulate_and_create_painter(countries):
     tess = Tessellator()
-    for n, p in enumerate(polygons):
-        tess.tessellate(n, p)
+    for n, country in enumerate(countries):
+        for p in country.get_polygons():
+            tess.tessellate(n, p)
     return tess.compose_result()
 
 
