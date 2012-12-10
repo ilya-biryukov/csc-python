@@ -6,16 +6,21 @@ from gui import PolygonViewer
 __author__ = 'Nikita.Tolstikov'
 
 class ApplicationController(QtCore.QObject):
+
+    appReady = QtCore.pyqtSignal()
+
     def __init__(self, parent):
         QtCore.QObject.__init__(self, parent)
 
     @QtCore.pyqtSlot(bool)
     def onCountriesPreparing(self, started):
         if started:
-            text = "Tessellating polygons...s"
+            text = "Tessellating polygons..."
         else:
             text = "Tessellation done."
+            self.appReady.emit()
         print text
+
 
 
 def print_usage():
@@ -40,8 +45,9 @@ def main():
 
     viewer = PolygonViewer.PolygonViewer(None)
     viewer.countriesPreparing.connect(app_controller.onCountriesPreparing)
-    viewer.tryBeginSetCountries(countries)
-    viewer.show()
+    viewer.tryBeginSetCountries(countries, color_map)
+
+    app_controller.appReady.connect(viewer.show)
 
     app.exec_()
 

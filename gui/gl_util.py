@@ -161,36 +161,55 @@ class Tessellator(object):
         gluTessEndPolygon(self.__tess)
 
 
-    def compose_result(self):
+    def compose_result(self, coloring):
         pts = self.__triangles
-        colors = self.__compose_colors()
-        return PolygonPainter(pts.get_list(), colors)
+        colors = self.__compose_colors(None)
+        colored_colors = None
+        if coloring is not None:
+            colored_colors = self.__compose_colors(coloring)
+        return PolygonPainter(pts.get_list(), colors, colored_colors)
 
 
-    def __compose_colors(self):
+    def __compose_colors(self, coloring):
         colors = list()
         for mark_interval in self.__triangles.get_marked_intervals():
             points_count = (mark_interval[1] - mark_interval[0]) / 2
-            colors.extend(repeat(mark_interval[2], points_count))
+            if coloring is not None:
+                cl = coloring[mark_interval[2]]
+            else:
+                cl = mark_interval[2]
+            colors.extend(repeat(cl, points_count))
         return colors
 
 
 
 
 
-def triangulate_and_create_painter(countries):
+def triangulate_and_create_painter(countries, coloring):
     tess = Tessellator()
     for n, country in enumerate(countries):
         for p in country.get_polygons():
             tess.tessellate(n, p)
-    return tess.compose_result()
+    return tess.compose_result(coloring)
 
 
 
 class PolygonPainter(object):
-    def __init__(self, pts, colors):
+    def __init__(self, pts, colors, other_colors):
         self.__raw_pts = numpy.array(pts, 'f')
         self.__raw_cls = numpy.array(self.__gen_colors(colors), 'f')
+        self.__raw_cls_colored = None
+        if other_colors is not None:
+            self.__raw_cls_colored = numpy.array(self.__gen_colors(other_colors), 'f')
+
+        self.__raw_render_cls = self.__raw_cls
+
+
+    def set_use_colors_from_coloring(self, use_coloring):
+        if use_coloring and self.__raw_cls_colored is not None:
+            self.__raw_render_cls = self.__raw_cls_colored
+        elif not use_coloring:
+            self.__raw_render_cls = self.__raw_cls
 
 
     def init_vbo(self):
@@ -201,7 +220,7 @@ class PolygonPainter(object):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
         glVertexPointer(2, GL_FLOAT, 0, self.__raw_pts)
-        glColorPointer(4, GL_FLOAT, 0, self.__raw_cls)
+        glColorPointer(4, GL_FLOAT, 0, self.__raw_render_cls)
 
         points_count = len(self.__raw_pts) / 2
         glDrawArrays(GL_TRIANGLES, 0, points_count)
@@ -223,3 +242,5 @@ class PolygonPainter(object):
                 picked_color = color_map[cl]
             generated_colors.extend(picked_color)
         return generated_colors
+
+

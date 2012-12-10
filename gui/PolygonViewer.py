@@ -1,5 +1,3 @@
-from data import shapefile
-
 __author__ = 'ilya'
 
 from PyQt4 import QtOpenGL, QtGui, QtCore
@@ -8,8 +6,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from gui.gl_util import triangulate_and_create_painter, PolygonPainter
-
-from data.Polygon import Polygon
 
 from algo.graph_builder import Builder
 
@@ -33,7 +29,8 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.__scale = 1.0
         self.__center = QtCore.QPointF(0.0, 0.0)
         self.__bg_color = PolygonViewerImpl.__DEFAULT_CLEAR_COLOR
-        self.__polygon_painter = PolygonPainter([], [])
+        self.__use_all_colors = True
+        self.__polygon_painter = PolygonPainter([], [], None)
 
 
     def __set_projection(self, w, h):
@@ -96,6 +93,22 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     bgColor = property(getBgColor, setBgColor)
 
 
+    @QtCore.pyqtSlot(bool)
+    def setUseAllColorsMode(self, use_all_colors):
+        if self.__use_all_colors == use_all_colors:
+            return
+        self.__use_all_colors = use_all_colors
+        self.__polygon_painter.set_use_colors_from_coloring(not use_all_colors)
+        self.updateGL()
+
+
+    def getUseAllColorsMode(self):
+        return self.__use_all_colors
+
+
+    useAllColorsMode = property(getUseAllColorsMode, setUseAllColorsMode)
+
+
     def set_polygon_painter(self, painter):
         self.__polygon_painter = painter
         self.updateGL()
@@ -128,12 +141,13 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 class TriangulatePolygonsThread(QtCore.QThread):
     painterReady = QtCore.pyqtSignal(PolygonPainter)
 
-    def __init__(self, parent, countries):
+    def __init__(self, parent, countries, coloring):
         QtCore.QThread.__init__(self, parent)
         self.__countries = countries
+        self.__coloring = coloring
 
     def run(self):
-        painter = triangulate_and_create_painter(self.__countries)
+        painter = triangulate_and_create_painter(self.__countries, self.__coloring)
         self.painterReady.emit(painter)
 
 
@@ -159,8 +173,8 @@ class PolygonViewer(PolygonViewerImpl):
         self.center = QtCore.QPointF(nx, ny)
 
 
-    def __spawn_preparing_thread(self, polygons):
-        thread = TriangulatePolygonsThread(self, polygons)
+    def __spawn_preparing_thread(self, countries, coloring):
+        thread = TriangulatePolygonsThread(self, countries, coloring)
         thread.painterReady.connect(self.__on_polygon_painter_ready)
         thread.start()
 
@@ -173,13 +187,13 @@ class PolygonViewer(PolygonViewerImpl):
         self.countriesPreparing.emit(False)
 
 
-    def tryBeginSetCountries(self, countries):
+    def tryBeginSetCountries(self, countries, country_coloring = None):
         if self.__preparing_polygons:
             return False
         self.__preparing_polygons = True
         self.countriesPreparing.emit(True)
 
-        self.__spawn_preparing_thread(countries)
+        self.__spawn_preparing_thread(countries, country_coloring)
         return True
 
 
@@ -212,6 +226,11 @@ class PolygonViewer(PolygonViewerImpl):
         self.__last_coord = mouse_event.pos()
         pos_diff.setX(-pos_diff.x())
         self.__update_center(pos_diff)
+
+
+    def keyReleaseEvent(self, ev):
+        if ev.key() == QtCore.Qt.Key_Space:
+            self.useAllColorsMode = not self.useAllColorsMode
 
 
 if __name__ == "__main__":
