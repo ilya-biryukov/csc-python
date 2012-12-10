@@ -1,24 +1,50 @@
-__author__ = 'Nikita.Tolstikov'
-
-__author__ = 'Nikita.Tolstikov'
-
 import sys
+from PyQt4 import QtCore, QtGui
 from data import Serializer
+from gui import PolygonViewer
+
+__author__ = 'Nikita.Tolstikov'
+
+class ApplicationController(QtCore.QObject):
+    def __init__(self, parent):
+        QtCore.QObject.__init__(self, parent)
+
+    @QtCore.pyqtSlot(bool)
+    def onCountriesPreparing(self, started):
+        if started:
+            text = "Tessellating polygons...s"
+        else:
+            text = "Tessellation done."
+        print text
 
 
-"""Script that all glue work in one.
-   Arg1 - path to dump of graph
-   Arg2 - path to dump colors
-   """
+def print_usage():
+    print \
+    """Usage: python view.py <precalculated_data>"""
 
-graph_file_path = sys.argv[1]
-cmap_file_path = sys.argv[2]
 
-serializer = Serializer.Serializer()
-graph = serializer.load_graph(graph_file_path)
-if graph is None:
-    print "Cannot load graph from path"
+def main():
+    if len(sys.argv) != 2:
+        print_usage()
+        return
 
-cmap = serializer.load_color_map(cmap_file_path)
-if cmap is None:
-    print "Cannot load color map from path"
+    filename = sys.argv[1]
+
+    print "Loading precalculated results..."
+    countries, color_map = Serializer.Serializer.load_from_file(filename)
+    print str.format("Loaded {0} countries.", len(countries))
+
+    app = QtGui.QApplication(["Graph viewer"])
+
+    app_controller = ApplicationController(None)
+
+    viewer = PolygonViewer.PolygonViewer(None)
+    viewer.countriesPreparing.connect(app_controller.onCountriesPreparing)
+    viewer.tryBeginSetCountries(countries)
+    viewer.show()
+
+    app.exec_()
+
+
+if __name__ == "__main__":
+    main()
