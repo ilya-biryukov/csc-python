@@ -88,6 +88,7 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     @QtCore.pyqtSlot(QtGui.QColor)
     def setBgColor(self, color):
         self.__bg_color = color
+        self.updateGL()
 
 
     bgColor = property(getBgColor, setBgColor)
@@ -231,6 +232,10 @@ class PolygonViewer(PolygonViewerImpl):
     def keyReleaseEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Space:
             self.useAllColorsMode = not self.useAllColorsMode
+        elif ev.key() == QtCore.Qt.Key_W:
+            self.bgColor = QtGui.QColor(255, 255, 255)
+        elif ev.key() == QtCore.Qt.Key_B:
+            self.bgColor = QtGui.QColor(28, 107, 160)
 
 
 if __name__ == "__main__":
