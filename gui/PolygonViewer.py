@@ -1,3 +1,5 @@
+from data import shapefile
+
 __author__ = 'ilya'
 
 from PyQt4 import QtOpenGL, QtGui, QtCore
@@ -9,6 +11,8 @@ from gui.gl_util import triangulate_and_create_painter, PolygonPainter
 
 from data.Polygon import Polygon
 
+from algo.graph_builder import Builder
+
 
 # Low-level class, handles drawing, scaling, etc
 class PolygonViewerImpl(QtOpenGL.QGLWidget):
@@ -18,6 +22,8 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
     __MAX_SCALE = 10.0
     __MIN_SCALE = 0.01
+    # Default color is ocean-blue
+    __DEFAULT_CLEAR_COLOR = QtGui.QColor(28, 107, 160)
 
 
     def __init__(self, parent):
@@ -26,7 +32,8 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
         self.centerChanged.connect(self.updateGL)
         self.__scale = 1.0
         self.__center = QtCore.QPointF(0.0, 0.0)
-        self.__polygon_painter = PolygonPainter([])
+        self.__bg_color = PolygonViewerImpl.__DEFAULT_CLEAR_COLOR
+        self.__polygon_painter = PolygonPainter([], [])
 
 
     def __set_projection(self, w, h):
@@ -77,22 +84,31 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
     center = property(getCenter, setCenter)
 
 
+    def getBgColor(self):
+        return self.__bg_color
+
+
+    @QtCore.pyqtSlot(QtGui.QColor)
+    def setBgColor(self, color):
+        self.__bg_color = color
+
+
+    bgColor = property(getBgColor, setBgColor)
+
+
     def set_polygon_painter(self, painter):
         self.__polygon_painter = painter
         self.updateGL()
 
 
     def paintGL(self):
-        glClearColor(1.0, 1.0, 1.0, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # Use ocean blue as clear color
+        self.qglClearColor(self.__bg_color)
+        glClear(GL_COLOR_BUFFER_BIT)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
-        colors = [(0.5, 1.0, 0.0), (1.0, 0.5, 0.0), (0.0, 0.5, 1.0), (0.0, 1.0, 0.5)]
-        cl = colors[0]
-        # TODO: Colors
-#        glColor(cl[0], cl[1], cl[2])
         self.__polygon_painter.paint_vbo()
 
 
@@ -105,9 +121,6 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 
 
     def initializeGL(self):
-        glClearColor(0.0, 0.0, 0.0, 1.0)
-        glClearDepth(1.0)
-
         self.__set_projection(self.width(), self.height())
 
 
@@ -115,12 +128,12 @@ class PolygonViewerImpl(QtOpenGL.QGLWidget):
 class TriangulatePolygonsThread(QtCore.QThread):
     painterReady = QtCore.pyqtSignal(PolygonPainter)
 
-    def __init__(self, parent, polygons):
+    def __init__(self, parent, countries):
         QtCore.QThread.__init__(self, parent)
-        self.__polygons = polygons
+        self.__countries = countries
 
     def run(self):
-        painter = triangulate_and_create_painter(self.__polygons)
+        painter = triangulate_and_create_painter(self.__countries)
         self.painterReady.emit(painter)
 
 
@@ -128,7 +141,7 @@ class TriangulatePolygonsThread(QtCore.QThread):
 # Handles user interaction
 class PolygonViewer(PolygonViewerImpl):
 
-    polygonsPreparing = QtCore.pyqtSignal(bool)
+    countriesPreparing = QtCore.pyqtSignal(bool)
 
     def __init__(self, parent):
         PolygonViewerImpl.__init__(self, parent)
@@ -157,16 +170,16 @@ class PolygonViewer(PolygonViewerImpl):
         assert self.__preparing_polygons, "__preparing_polygons wasn't set"
         self.set_polygon_painter(painter)
         self.__preparing_polygons = False
-        self.polygonsPreparing.emit(False)
+        self.countriesPreparing.emit(False)
 
 
-    def tryBeginSetPolygons(self, polygons):
+    def tryBeginSetCountries(self, countries):
         if self.__preparing_polygons:
             return False
         self.__preparing_polygons = True
-        self.polygonsPreparing.emit(True)
+        self.countriesPreparing.emit(True)
 
-        self.__spawn_preparing_thread(polygons)
+        self.__spawn_preparing_thread(countries)
         return True
 
 
@@ -202,31 +215,18 @@ class PolygonViewer(PolygonViewerImpl):
 
 
 if __name__ == "__main__":
-    def run_simple_test():
-        app = QtGui.QApplication(["Simple polygon-drawing demo"])
-        win = PolygonViewer(None)
-        win.show()
-
-        poly_1 = Polygon([(0.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
-        poly_2 = Polygon([(0.0, -1.0), (-1.0, 0.0), (0.0, 0.0)])
-        win.polygons = [poly_1, poly_2]
-
-        app.exec_()
-
     def run_shapefile_test():
-        from algo.graph_builder import Builder, shapefile
-        shape_records = shapefile.Reader('../algo/graph_builder/WORLD_MAP/WORLD_MAP').shapeRecords()
-        polygons, _ = Builder.Builder.build_sorted_polygon_list(shape_records)
+        countries = Builder.Builder.build_all_countries('../algo/graph_builder/WORLD_MAP/WORLD_MAP')
 
         app = QtGui.QApplication(["Shapefiles test"])
 
         win = PolygonViewer(None)
         win.show()
 
-        win.tryBeginSetPolygons(polygons)
+        countries.sort(key = lambda c : -len(c.get_polygons()))
 
-#        win.setPolygons([Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)]),\
-#                         Polygon([(0.0, 0.0), (1.0, 0.0), (0.0, 10.0), (1.0, 20.0)])])
+        win.tryBeginSetCountries(countries)
+
         app.exec_()
 
     run_shapefile_test()
