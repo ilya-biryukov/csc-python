@@ -25,7 +25,8 @@ class Builder(object):
                 res_polygons.append(Polygon.Polygon(buf))
                 buf = []
                 del parts[0]
-            buf.append(shape.points[i])
+            pt = shape.points[i]
+            buf.append(Point.Point(pt[0], pt[1]))
         if len(buf) > 0:
             res_polygons.append(Polygon.Polygon(buf))
         return res_polygons
@@ -43,7 +44,8 @@ class Builder(object):
                 now_ind += 1
                 buf = []
                 current_part += 1
-            buf.append(shape.points[i])
+            pt = shape.points[i]
+            buf.append(Point.Point(pt[0], pt[1]))
         if len(buf) > 0:
             res_polygons.append(SortedPolygon.SortedPolygon(buf, now_ind))
             now_ind += 1
