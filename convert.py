@@ -1,5 +1,3 @@
-__author__ = 'Nikita.Tolstikov'
-
 import sys
 from algo import graph_builder
 from data import shapefile
@@ -7,32 +5,49 @@ from data import Serializer
 from algo import Exact
 from algo import Heuristics
 
-"""Script that all glue work in one.
-   Arg1 - path to shape file
-   Arg2 - path to dump of graph
-   Arg3 - path to dump colors
-   """
+__author__ = 'Nikita.Tolstikov'
 
-shape_file_path = sys.argv[1]
-graph_file_path = sys.argv[2]
-cmap_file_path = sys.argv[3]
-reader = shapefile.Reader(shape_file_path)
-serializer = Serializer.Serializer()
-if reader is None:
-    print 'Cannot load shapefile with path'
-    sys.exit(0)
-records = reader.records()
-record_name_id = 4
-countries = []
-for r in records:
-    countries.append(graph_builder.Builder.Builder.build_country(r, record_name_id))
+def print_usage():
+    print \
+    """Usage: python convert.py <shapefile-path> <output-file-path>"""
 
-graph = graph_builder.Builder.Builder.build_country_graph_from_countries(countries)
-serializer.dump_graph(graph, graph_file_path)
+def load_countries(shape_file_path):
+    reader = shapefile.Reader(shape_file_path)
+    records = reader.shapeRecords()
+    record_name_id = 4
+    countries = []
+    for r in records:
+        countries.append(graph_builder.Builder.build_country(r, record_name_id))
+    return countries
 
-if len(countries) < 15:
-    colors_map = Exact.Exact().get_colors_by_graph(graph)
-else:
-    colors_map = Heuristics.Heurstics().color_graph(graph)
 
-serializer.dump_color_map(colors_map, cmap_file_path)
+def main():
+    if len(sys.argv) != 3:
+        print_usage()
+        return
+    shape_file_path = sys.argv[1]
+    out_file_path = sys.argv[2]
+
+    print "Loading countries..."
+    countries = load_countries(shape_file_path)
+    print str.format("Loaded {0} countries", len(countries))
+
+    print "Building graph..."
+    graph = graph_builder.Builder.build_country_graph_from_countries(countries)
+    print str.format("Loaded graph of {0} vertices", graph.get_vertices_count())
+
+    print "Coloring graph..."
+    if len(countries) < 15:
+        print "Using exact algorithm"
+        colors_map = Exact.Exact().get_colors_by_graph(graph)
+    else:
+        print "Using approximation algorithm"
+        colors_map = Heuristics.Heurstics().color_graph(graph)
+
+    print "Dumping results..."
+    Serializer.Serializer.dump_to_file(countries, colors_map, out_file_path)
+
+
+
+if __name__ == "__main__":
+    main()
