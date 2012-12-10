@@ -1,27 +1,14 @@
 __author__ = 'Nikita.Tolstikov'
 
+import cPickle
+
 class Serializer(object):
-    def __init__(self):
-        pass
+    @staticmethod
+    def dump_to_file(countries, color_map, filename):
+        with open(filename, 'w') as f:
+            cPickle.dump((countries, color_map), f)
 
-    def __dump_obj(self, obj, path):
-        f = open(path, "w")
-        f.write("I dump something")
-        f.close()
-
-    def dump_graph(self, graph, path):
-        self.__dump_obj(graph, path)
-
-    def dump_color_map(self, cmap, path):
-        self.__dump_obj(cmap, path)
-
-    def __load_obj(self, path):
-        f = open(path, "w")
-        f.write("I load something")
-        f.close()
-
-    def load_graph(self, path):
-        self.__load_obj(path)
-
-    def load_color_map(self, path):
-        self.__load_obj(path)
+    @staticmethod
+    def load_from_file(filename):
+        with open(filename, 'r') as f:
+            return cPickle.load(f)
